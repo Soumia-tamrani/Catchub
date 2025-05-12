@@ -116,7 +116,6 @@ model CompanyDetail {
   companySize       CompanySize
   companyNeeds      CompanyNeed[]
   companyChallenges String?
-  // Vous pourriez également vouloir ajouter city et country ici
   city              String?
   country           String?
 }

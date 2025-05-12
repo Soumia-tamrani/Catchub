@@ -2,7 +2,6 @@
 
 import { PrismaClient } from "@prisma/client"
 import { z } from "zod"
-// Supprimer l'import de isValidPhoneNumber
 
 const prisma = new PrismaClient()
 
@@ -76,7 +75,7 @@ const professionalLeadSchema = z.object({
       message: "Numéro de téléphone invalide",
     }),
   city: z.string().optional().default(""), // Renommé de "address" à "city"
-  country: z.string().min(1, "Le pays est requis"), // Nouveau champ obligatoire
+  country: z.string().optional().default(""), // Nouveau champ, rendu optionnel pour compatibilité
   sector: z.nativeEnum(Secteur),
   professionalInterests: z.array(z.nativeEnum(ProfessionalInterest)).min(1, "Sélectionnez au moins un intérêt"),
   professionalChallenges: z.string().optional().default(""),
@@ -140,7 +139,6 @@ async function checkUniqueEmailAndPhone(email: string, phone: string) {
 }
 
 export async function registerProfessional(formData: FormData) {
-
   try {
     // Log the received form data for debugging
     console.log("Form data received:", Object.fromEntries(formData.entries()))
@@ -155,7 +153,7 @@ export async function registerProfessional(formData: FormData) {
       email: formData.get("email") as string,
       phone: formData.get("phone") as string,
       city: (formData.get("city") as string) || "", // Renommé de "address" à "city"
-      country: formData.get("country") as string, // Nouveau champ
+      country: (formData.get("country") as string) || "", // Nouveau champ
       sector: formData.get("sector") as string,
       professionalInterests: professionalInterests as string[],
       professionalChallenges: (formData.get("professionalChallenges") as string) || "",
@@ -229,14 +227,12 @@ export async function registerProfessional(formData: FormData) {
               create: {
                 professionalInterests: validated.professionalInterests as any[],
                 professionalChallenges: validated.professionalChallenges || null,
-                city: validated.city as any,
-                country: validated.country,
+                // Suppression des champs city et country qui causent l'erreur
               },
               update: {
                 professionalInterests: validated.professionalInterests as any[],
                 professionalChallenges: validated.professionalChallenges || null,
-                city: validated.city as any,
-                country: validated.country,
+                // Suppression des champs city et country qui causent l'erreur
               },
             },
           },
@@ -269,8 +265,7 @@ export async function registerProfessional(formData: FormData) {
             create: {
               professionalInterests: validated.professionalInterests as any[],
               professionalChallenges: validated.professionalChallenges || null,
-              city: validated.city as any,
-              country: validated.country,
+              // Suppression des champs city et country qui causent l'erreur
             },
           },
         },
@@ -353,16 +348,14 @@ export async function registerBusiness(formData: FormData) {
                 companySize: validated.companySize as any,
                 companyNeeds: validated.companyNeeds as any[],
                 companyChallenges: validated.companyChallenges || null,
-                city: validated.address as any, // Ajout du champ city pour les entreprises
-                country: null, // Peut être ajouté si besoin dans le formulaire
+                // Suppression des champs city et country qui causent l'erreur
               },
               update: {
                 companyName: validated.companyName,
                 companySize: validated.companySize as any,
                 companyNeeds: validated.companyNeeds as any[],
                 companyChallenges: validated.companyChallenges || null,
-                city: validated.address as any, // Ajout du champ city pour les entreprises
-                country: null, // Peut être ajouté si besoin dans le formulaire
+                // Suppression des champs city et country qui causent l'erreur
               },
             },
           },
@@ -395,8 +388,7 @@ export async function registerBusiness(formData: FormData) {
               companySize: validated.companySize as any,
               companyNeeds: validated.companyNeeds as any[],
               companyChallenges: validated.companyChallenges || null,
-              city: validated.address as any, // Ajout du champ city pour les entreprises
-              country: null , // Peut être ajouté si besoin dans le formulaire
+              // Suppression des champs city et country qui causent l'erreur
             },
           },
         },
@@ -470,6 +462,7 @@ export async function subscribeToNewsletter(formData: FormData) {
           Nom: "",
           role: UserRole.PROFESSIONAL as any,
           city: "",
+          country: "",
           sector: Secteur.AUTRE as any,
           besoinPrincipal: ProfessionalInterest.AUTRE as any,
           subscribedToNewsletter: true,
