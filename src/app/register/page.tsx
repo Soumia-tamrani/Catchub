@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UserRound, Building2, CheckCircle, Star, Gift, Clock, Zap, ArrowLeft } from "lucide-react"
 import ProfessionalForm from "@/components/professional-form"
 import { motion } from "framer-motion"
-// import BusinessForm from "@/components/business-form"
+import BusinessForm from "@/components/business-form"
 
 export default function RegisterPage() {
   const [activeTab, setActiveTab] = useState<string | null>(null)
   const [hoverPro, setHoverPro] = useState(false)
   const [hoverBiz, setHoverBiz] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
 
   // Get UTM parameters if available
   const utmSource = ""
@@ -19,9 +20,27 @@ export default function RegisterPage() {
   const utmCampaign = ""
 
   // Define totalSpots and remainingSpots
-  const totalSpots = 100 // Example value
-  const remainingSpots = 25 // Example value
+  const totalSpots = 100
+  const remainingSpots = 25
   const percentageTaken = ((totalSpots - remainingSpots) / totalSpots) * 100
+
+  const onStepChange = (step: number) => {
+    setCurrentStep(step)
+  }
+
+  // Fonction pour afficher le titre approprié selon l'étape du formulaire entreprise
+  const getBusinessFormTitle = () => {
+    if (currentStep === 1) return "Informations personnelles"
+    if (currentStep === 2) return "Vérification email"
+    return "Profil entreprise"
+  }
+
+  // Fonction pour afficher la description appropriée selon l'étape du formulaire entreprise
+  const getBusinessFormDescription = () => {
+    if (currentStep === 1) return "Renseignez vos informations et celles de votre entreprise."
+    if (currentStep === 2) return "Confirmez votre adresse email pour sécuriser votre compte."
+    return "Complétez le profil de votre entreprise pour personnaliser votre expérience."
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -40,7 +59,7 @@ export default function RegisterPage() {
             className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all duration-300 backdrop-blur-lg border border-white/20"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            <span className="font-semibold text-sm tracking-wide">Retour à l’accueil</span>
+            <span className="font-semibold text-sm tracking-wide">Retour à l'accueil</span>
           </Link>
 
           <motion.div
@@ -53,7 +72,7 @@ export default function RegisterPage() {
               Lancez votre avenir dès maintenant
             </h1>
             <p className="text-lg text-white/90 max-w-2xl mx-auto font-light leading-relaxed">
-              Profitez d’un mois gratuit pour explorer nos services et concrétiser vos ambitions.
+              Profitez d'un mois gratuit pour explorer nos services et concrétiser vos ambitions.
             </p>
           </motion.div>
 
@@ -124,7 +143,7 @@ export default function RegisterPage() {
                   <div className="space-y-3 text-left w-full">
                     <div className="flex items-start">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700 text-sm">Offres d’emploi exclusives</span>
+                      <span className="text-gray-700 text-sm">Offres d'emploi exclusives</span>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -143,7 +162,7 @@ export default function RegisterPage() {
                         : "bg-blue-100 text-blue-600"
                     }`}
                   >
-                    S’inscrire gratuitement
+                    S'inscrire gratuitement
                   </div>
                 </button>
 
@@ -197,7 +216,7 @@ export default function RegisterPage() {
                       <span className="text-gray-700 text-sm">Partenariats B2B stratégiques</span>
                     </div>
                     <div className="flex items-start">
-                      <CheckCircle className="h-5 w-5 text-green- scegli 500 mr-3 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                       <span className="text-gray-700 text-sm">Visibilité de marque accrue</span>
                     </div>
                   </div>
@@ -209,7 +228,7 @@ export default function RegisterPage() {
                         : "bg-indigo-100 text-indigo-600"
                     }`}
                   >
-                    S’inscrire gratuitement
+                    S'inscrire gratuitement
                   </div>
                 </button>
               </motion.div>
@@ -217,7 +236,7 @@ export default function RegisterPage() {
 
             {/* Early access benefits */}
             <div className="mt-12 bg-white rounded-2xl p-8 border border-gray-100 shadow-lg">
-              <h3 className="text-2xl font-semibold text-center text-gray-900 mb-8">Avantages de l’accès anticipé</h3>
+              <h3 className="text-2xl font-semibold text-center text-gray-900 mb-8">Avantages de l'accès anticipé</h3>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="flex flex-col items-center text-center p-4">
@@ -258,7 +277,7 @@ export default function RegisterPage() {
             <div className="mt-12 bg-white rounded-2xl border border-gray-100 p-8 shadow-lg">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                  <h4 className="font-semibold text-gray-900 text-lg">Places disponibles pour l’accès anticipé</h4>
+                  <h4 className="font-semibold text-gray-900 text-lg">Places disponibles pour l'accès anticipé</h4>
                   <p className="text-gray-600 mt-1">
                     Seulement <span className="text-blue-600 font-bold">{remainingSpots}</span> places sur {totalSpots}{" "}
                     restantes
@@ -286,7 +305,7 @@ export default function RegisterPage() {
               <p className="text-gray-500 text-sm">
                 En vous inscrivant, vous acceptez nos{" "}
                 <a href="#" className="text-blue-600 hover:underline font-medium">
-                  Conditions d’utilisation
+                  Conditions d'utilisation
                 </a>{" "}
                 et notre{" "}
                 <a href="#" className="text-blue-600 hover:underline font-medium">
@@ -305,12 +324,12 @@ export default function RegisterPage() {
               <CardHeader className="flex flex-row items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
                 <div>
                   <CardTitle className="text-2xl font-semibold text-gray-900">
-                    {activeTab === "professional" ? "Inscription Professionnel" : "Inscription Entreprise"}
+                    {activeTab === "professional" ? "Inscription Professionnel" : getBusinessFormTitle()}
                   </CardTitle>
                   <CardDescription className="text-gray-600 mt-1 text-sm">
                     {activeTab === "professional"
                       ? "Rejoignez notre communauté pour accéder à des opportunités uniques."
-                      : "Boostez votre entreprise avec notre réseau et nos talents."}
+                      : getBusinessFormDescription()}
                   </CardDescription>
                 </div>
                 <button
@@ -327,20 +346,13 @@ export default function RegisterPage() {
                     <ProfessionalForm utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} />
                   </div>
                 ) : (
-                  <div className="w-full p-10 flex flex-col items-center justify-center bg-gray-50">
-                    <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-6">
-                      <Building2 className="h-8 w-8 text-indigo-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Formulaire Entreprise</h3>
-                    <p className="text-gray-600 text-center text-sm mb-6 max-w-sm">
-                      Le formulaire d’inscription pour les entreprises sera disponible prochainement.
-                    </p>
-                    <button
-                      onClick={() => setActiveTab("professional")}
-                      className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-full font-semibold text-sm hover:from-indigo-700 hover:to-indigo-600 transition-all duration-300 shadow-md"
-                    >
-                      Découvrir l’inscription professionnelle
-                    </button>
+                  <div className="w-full">
+                    <BusinessForm
+                      utmSource={utmSource}
+                      utmMedium={utmMedium}
+                      utmCampaign={utmCampaign}
+                      onStepChange={onStepChange}
+                    />
                   </div>
                 )}
               </CardContent>

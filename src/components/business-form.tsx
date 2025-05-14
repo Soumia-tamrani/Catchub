@@ -1,489 +1,758 @@
-// "use client"
+"use client"
 
-// import type React from "react"
-// import { useState, useEffect } from "react"
-// import { registerBusiness } from "@/app/action"
-// import { Button } from "@/components/ui/button"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import { Textarea } from "@/components/ui/textarea"
-// import { Checkbox } from "@/components/ui/checkbox"
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// import { ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
-// import Link from "next/link"
-// import { useRouter } from "next/navigation"
-// import EmailVerification from "@/components/email-verification"
+import type React from "react"
+import { useState, useEffect } from "react"
+import { registerBusiness } from "@/app/action"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowRight, Loader2, CheckCircle2, Building2, User, Mail, Check, AlertCircle, Info } from "lucide-react"
+import { useRouter } from "next/navigation"
+import EmailVerification from "@/components/email-verification"
+import { motion } from "framer-motion"
+import {
+  countriesList,
+  isValidEmail,
+  isValidPhoneForCountry,
+  detectCountryFromPhone,
+  formatPhoneNumber,
+} from "@/lib/form-utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-// interface BusinessFormProps {
-//   utmSource?: string
-//   utmMedium?: string
-//   utmCampaign?: string
-//   onStepChange?: (step: number) => void
-// }
+interface BusinessFormProps {
+  utmSource?: string
+  utmMedium?: string
+  utmCampaign?: string
+  onStepChange?: (step: number) => void
+}
 
-// export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStepChange }: BusinessFormProps) {
-//   const [step, setStep] = useState(1)
-//   const router = useRouter()
-//   const [isEmailVerified, setIsEmailVerified] = useState(false)
-//   const [isSubmitting, setIsSubmitting] = useState(false)
-//   const [formData, setFormData] = useState({
-//     firstName: "",
-//     lastName: "",
-//     email: "",
-//     phone: "",
-//     sector: "",
-//     companyName: "",
-//     companySize: "",
-//     companyNeeds: [] as string[],
-//     companyChallenges: "",
-//     subscribedToNewsletter: false,
-//     referralSource: "",
-//   })
+export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStepChange }: BusinessFormProps) {
+  const [step, setStep] = useState(1)
+  const router = useRouter()
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    companyName: "",
+    city: "",
+    country: "",
+    companySize: "",
+    sector: "",
+    otherSector: "",
+    mainNeed: "",
+    companyNeeds: [] as string[],
+    companyChallenges: "",
+    companyDescription: "",
+    companyWebsite: "",
+    companyFoundingYear: "",
+    subscribedToNewsletter: false,
+    referralSource: "",
+  })
 
-//   useEffect(() => {
-//     if (onStepChange) {
-//       onStepChange(step)
-//     }
-//   }, [step, onStepChange])
+  // État pour les erreurs de validation
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string
+    phone?: string
+  }>({})
 
-//   const handleNeedChange = (need: string, checked: boolean) => {
-//     setFormData((prev) => {
-//       if (checked) {
-//         return { ...prev, companyNeeds: [...prev.companyNeeds, need] }
-//       } else {
-//         return { ...prev, companyNeeds: prev.companyNeeds.filter((n) => n !== need) }
-//       }
-//     })
-//   }
+  // Valider l'email lorsqu'il change
+  useEffect(() => {
+    if (formData.email && !isValidEmail(formData.email)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        email: "Veuillez entrer une adresse email valide",
+      }))
+    } else {
+      setValidationErrors((prev) => {
+        const { email, ...rest } = prev
+        return rest
+      })
+    }
+  }, [formData.email])
 
-//   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-//     e.preventDefault()
-//     setIsSubmitting(true)
+  // Valider le téléphone lorsqu'il change ou que le pays change
+  useEffect(() => {
+    if (formData.phone && formData.country) {
+      if (!isValidPhoneForCountry(formData.phone, formData.country)) {
+        const country = countriesList.find((c) => c.code === formData.country)
+        setValidationErrors((prev) => ({
+          ...prev,
+          phone: `Format invalide. Exemple: ${country?.example || ""}`,
+        }))
+      } else {
+        setValidationErrors((prev) => {
+          const { phone, ...rest } = prev
+          return rest
+        })
+      }
+    }
+  }, [formData.phone, formData.country])
 
-//     const formDataObj = new FormData()
+  // Détecter le pays à partir du préfixe téléphonique
+  useEffect(() => {
+    if (formData.phone && !formData.country) {
+      const detectedCountry = detectCountryFromPhone(formData.phone)
+      if (detectedCountry) {
+        setFormData((prev) => ({ ...prev, country: detectedCountry }))
+      }
+    }
+  }, [formData.phone])
 
-//     // Add all form fields to FormData
-//     Object.entries(formData).forEach(([key, value]) => {
-//       if (Array.isArray(value)) {
-//         value.forEach((item) => formDataObj.append(key, item))
-//       } else {
-//         formDataObj.append(key, value.toString())
-//       }
-//     })
+  // Formater le numéro de téléphone selon le pays
+  useEffect(() => {
+    if (formData.phone && formData.country) {
+      const formattedPhone = formatPhoneNumber(formData.phone, formData.country)
+      if (formattedPhone !== formData.phone) {
+        setFormData((prev) => ({ ...prev, phone: formattedPhone }))
+      }
+    }
+  }, [formData.country])
 
-//     // Add UTM parameters if available
-//     if (utmSource) formDataObj.append("utmSource", utmSource)
-//     if (utmMedium) formDataObj.append("utmMedium", utmMedium)
-//     if (utmCampaign) formDataObj.append("utmCampaign", utmCampaign)
-    
-//     // Ajouter l'état de vérification de l'email
-//     formDataObj.append("emailVerified", isEmailVerified.toString())
+  useEffect(() => {
+    if (onStepChange) {
+      onStepChange(step)
+    }
+  }, [step, onStepChange])
 
-//     try {
-//       await registerBusiness(formDataObj)
-//       router.push("/register/success")
+  const handleNeedChange = (need: string, checked: boolean) => {
+    setFormData((prev) => {
+      if (checked) {
+        return { ...prev, companyNeeds: [...prev.companyNeeds, need] }
+      } else {
+        return { ...prev, companyNeeds: prev.companyNeeds.filter((n) => n !== need) }
+      }
+    })
+  }
 
-//     } catch (error) {
-//       console.error("Error submitting form:", error)
-//       setIsSubmitting(false)
-//     }
-//   }
+  const validateStep1 = () => {
+    const requiredFields = ["firstName", "lastName", "email", "phone", "companyName", "city", "country", "companySize"]
+    const missingFields = requiredFields.filter((field) => !formData[field as keyof typeof formData])
 
-//   const nextStep = () => {
-//     if (step === 1 && !isEmailVerified) {
-//       // S'arrêter pour vérifier l'email avant de passer à l'étape 2
-//       setStep(1.5)
-//     } else {
-//       setStep(step + 1)
-//     }
-//   }
-  
-//   const prevStep = () => {
-//     if (step === 1.5) {
-//       setStep(1)
-//     } else {
-//       setStep(step - 1)
-//     }
-//   }
+    return missingFields.length === 0 && Object.keys(validationErrors).length === 0
+  }
 
-//   const handleEmailVerified = () => {
-//     setIsEmailVerified(true)
-//     setStep(2)
-//   }
+  const validateStep3 = () => {
+    const requiredFields = ["sector", "mainNeed"]
+    const missingFields = requiredFields.filter((field) => !formData[field as keyof typeof formData])
 
-//   // Fonction pour afficher les étapes progressives
-//   const renderProgressSteps = () => {
-//     const totalSteps = 3
-//     return (
-//       <div className="flex items-center justify-between mb-6">
-//         {Array.from({ length: totalSteps }).map((_, idx) => {
-//           const stepNumber = idx + 1
-//           const isActive = step >= stepNumber
-//           const isCompleted = step > stepNumber
+    if (formData.sector === "AUTRE" && !formData.otherSector) {
+      return false
+    }
 
-//           return (
-//             <div key={stepNumber} className="flex items-center flex-1">
-//               {stepNumber > 1 && (
-//                 <div
-//                   className={`flex-1 h-1 ${
-//                     isActive ? "bg-primary" : "bg-gray-300"
-//                   }`}
-//                 />
-//               )}
-//               <div
-//                 className={`relative flex flex-col items-center ${
-//                   stepNumber > 1 ? "ml-2" : ""
-//                 }`}
-//               >
-//                 <div
-//                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-//                     isActive
-//                       ? "bg-primary text-white"
-//                       : "bg-gray-200 text-gray-500"
-//                   }`}
-//                 >
-//                   {isCompleted ? (
-//                     <CheckCircle2 className="h-6 w-6" />
-//                   ) : (
-//                     stepNumber
-//                   )}
-//                 </div>
-//                 <span className="text-xs mt-1 text-center">
-//                   {stepNumber === 1
-//                     ? "Identité"
-//                     : stepNumber === 2
-//                     ? "Entreprise"
-//                     : "Paiement"}
-//                 </span>
-//               </div>
-//               {stepNumber < totalSteps && (
-//                 <div
-//                   className={`flex-1 h-1 ${
-//                     step > stepNumber ? "bg-primary" : "bg-gray-300"
-//                   }`}
-//                 />
-//               )}
-//             </div>
-//           )
-//         })}
-//       </div>
-//     )
-//   }
+    return missingFields.length === 0
+  }
 
-//   return (
-//     <form onSubmit={handleSubmit} className="space-y-6">
-//       {step !== 1.5 && renderProgressSteps()}
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
 
-//       {step === 1 && (
-//         <div className="space-y-4">
-//           <div className="grid grid-cols-2 gap-4">
-//             <div className="space-y-2">
-//               <Label htmlFor="firstName">Prénom</Label>
-//               <Input
-//                 id="firstName"
-//                 name="firstName"
-//                 required
-//                 value={formData.firstName}
-//                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-//               />
-//             </div>
-//             <div className="space-y-2">
-//               <Label htmlFor="lastName">Nom</Label>
-//               <Input
-//                 id="lastName"
-//                 name="lastName"
-//                 required
-//                 value={formData.lastName}
-//                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-//               />
-//             </div>
-//           </div>
+    if (step === 3) {
+      setIsSubmitting(true)
 
-//           <div className="space-y-2">
-//             <Label htmlFor="email">Email</Label>
-//             <Input
-//               id="email"
-//               name="email"
-//               type="email"
-//               required
-//               value={formData.email}
-//               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-//             />
-//             {isEmailVerified && (
-//               <div className="flex items-center mt-1 text-green-600 text-sm">
-//                 <CheckCircle2 className="h-4 w-4 mr-1" />
-//                 Email vérifié
-//               </div>
-//             )}
-//           </div>
+      const formDataObj = new FormData()
 
-//           <div className="space-y-2">
-//             <Label htmlFor="phone">Téléphone (optionnel)</Label>
-//             <Input
-//               id="phone"
-//               name="phone"
-//               type="tel"
-//               value={formData.phone}
-//               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-//             />
-//           </div>
+      // Add all form fields to FormData
+      Object.entries(formData).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => formDataObj.append(key, item))
+        } else {
+          formDataObj.append(key, value.toString())
+        }
+      })
 
-//           <div className="space-y-2">
-//             <Label htmlFor="companyName">Nom de l'entreprise</Label>
-//             <Input
-//               id="companyName"
-//               name="companyName"
-//               required
-//               value={formData.companyName}
-//               onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-//             />
-//           </div>
+      // Si le secteur est "AUTRE", ajouter le secteur personnalisé
+      if (formData.sector === "AUTRE" && formData.otherSector) {
+        formDataObj.append("customSector", formData.otherSector)
+      }
 
-//           <Button 
-//             type="button" 
-//             onClick={nextStep} 
-//             className="w-full"
-//             disabled={!formData.email || !formData.firstName || !formData.lastName || !formData.companyName}
-//           >
-//             {isEmailVerified ? "Continuer" : "Vérifier l'email"} <ArrowRight className="ml-2 h-4 w-4" />
-//           </Button>
-//         </div>
-//       )}
+      // Add UTM parameters if available
+      if (utmSource) formDataObj.append("utmSource", utmSource)
+      if (utmMedium) formDataObj.append("utmMedium", utmMedium)
+      if (utmCampaign) formDataObj.append("utmCampaign", utmCampaign)
 
-//       {/* Étape intermédiaire : Vérification d'email */}
-//       {step === 1.5 && (
-//         <EmailVerification 
-//           email={formData.email} 
-//           onVerified={handleEmailVerified} 
-//           onBack={prevStep}
-//         />
-//       )}
+      // Ajouter l'état de vérification de l'email
+      formDataObj.append("emailVerified", isEmailVerified.toString())
 
-//       {step === 2 && (
-//         <div className="space-y-4">
-//           <div className="space-y-2">
-//             <Label htmlFor="sector">Secteur d'activité</Label>
-//             <Select
-//               name="sector"
-//               value={formData.sector}
-//               onValueChange={(value) => setFormData({ ...formData, sector: value })}
-//               required
-//             >
-//               <SelectTrigger>
-//                 <SelectValue placeholder="Sélectionnez votre secteur" />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="TECH">Technologie</SelectItem>
-//                 <SelectItem value="AGRO">Agriculture</SelectItem>
-//                 <SelectItem value="COMMERCE">Commerce</SelectItem>
-//                 <SelectItem value="FINANCE">Finance</SelectItem>
-//                 <SelectItem value="SANTE">Santé</SelectItem>
-//                 <SelectItem value="EDUCATION">Éducation</SelectItem>
-//                 <SelectItem value="AUTRE">Autre</SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
+      try {
+        await registerBusiness(formDataObj)
+        router.push("/register/success")
+      } catch (error) {
+        console.error("Error submitting form:", error)
+        setIsSubmitting(false)
+      }
+    }
+  }
 
-//           <div className="space-y-2">
-//             <Label htmlFor="companySize">Taille de l'entreprise</Label>
-//             <Select
-//               name="companySize"
-//               value={formData.companySize}
-//               onValueChange={(value) => setFormData({ ...formData, companySize: value })}
-//               required
-//             >
-//               <SelectTrigger>
-//                 <SelectValue placeholder="Sélectionnez la taille" />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="LESS_THAN_10">Moins de 10 employés</SelectItem>
-//                 <SelectItem value="BETWEEN_10_50">10 à 50 employés</SelectItem>
-//                 <SelectItem value="BETWEEN_50_250">50 à 250 employés</SelectItem>
-//                 <SelectItem value="MORE_THAN_250">Plus de 250 employés</SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
+  const nextStep = () => {
+    if (step === 1 && validateStep1()) {
+      // Passer directement à l'étape de vérification d'email (étape 2)
+      setStep(2)
+    } else if (step === 2 && isEmailVerified) {
+      // Passer à l'étape du profil entreprise après vérification
+      setStep(3)
+    }
+  }
 
-//           <div className="space-y-2">
-//             <Label>Besoins de l'entreprise</Label>
-//             <div className="grid grid-cols-2 gap-2">
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox
-//                   id="need-brand"
-//                   checked={formData.companyNeeds.includes("PRESENTATION_MARQUE")}
-//                   onCheckedChange={(checked) => handleNeedChange("PRESENTATION_MARQUE", checked as boolean)}
-//                 />
-//                 <Label htmlFor="need-brand">Présentation de marque</Label>
-//               </div>
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox
-//                   id="need-b2b"
-//                   checked={formData.companyNeeds.includes("RESEAU_B2B")}
-//                   onCheckedChange={(checked) => handleNeedChange("RESEAU_B2B", checked as boolean)}
-//                 />
-//                 <Label htmlFor="need-b2b">Réseau B2B</Label>
-//               </div>
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox
-//                   id="need-recruitment"
-//                   checked={formData.companyNeeds.includes("RECRUTEMENT")}
-//                   onCheckedChange={(checked) => handleNeedChange("RECRUTEMENT", checked as boolean)}
-//                 />
-//                 <Label htmlFor="need-recruitment">Recrutement</Label>
-//               </div>
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox
-//                   id="need-markets"
-//                   checked={formData.companyNeeds.includes("MARCHES")}
-//                   onCheckedChange={(checked) => handleNeedChange("MARCHES", checked as boolean)}
-//                 />
-//                 <Label htmlFor="need-markets">Marchés</Label>
-//               </div>
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox
-//                   id="need-suppliers"
-//                   checked={formData.companyNeeds.includes("FOURNISSEURS")}
-//                   onCheckedChange={(checked) => handleNeedChange("FOURNISSEURS", checked as boolean)}
-//                 />
-//                 <Label htmlFor="need-suppliers">Fournisseurs</Label>
-//               </div>
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox
-//                   id="need-financing"
-//                   checked={formData.companyNeeds.includes("FINANCEMENT")}
-//                   onCheckedChange={(checked) => handleNeedChange("FINANCEMENT", checked as boolean)}
-//                 />
-//                 <Label htmlFor="need-financing">Financement</Label>
-//               </div>
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox
-//                   id="need-other"
-//                   checked={formData.companyNeeds.includes("AUTRE")}
-//                   onCheckedChange={(checked) => handleNeedChange("AUTRE", checked as boolean)}
-//                 />
-//                 <Label htmlFor="need-other">Autre</Label>
-//               </div>
-//             </div>
-//           </div>
+  const prevStep = () => {
+    if (step > 1) {
+      setStep(step - 1)
+    }
+  }
 
-//           <div className="flex justify-between">
-//             <Button type="button" variant="outline" onClick={prevStep}>
-//               Retour
-//             </Button>
-//             <Button type="button" onClick={nextStep}>
-//               Continuer
-//             </Button>
-//           </div>
-//         </div>
-//       )}
+  const handleEmailVerified = () => {
+    setIsEmailVerified(true)
+    // Attendre un peu pour montrer la confirmation avant de passer à l'étape suivante
+    setTimeout(() => {
+      setStep(3)
+    }, 1000)
+  }
 
-//       {step === 3 && (
-//         <div className="space-y-4">
-//           <div className="space-y-2">
-//             <Label htmlFor="companyChallenges">Défis actuels de l'entreprise</Label>
-//             <Textarea
-//               id="companyChallenges"
-//               name="companyChallenges"
-//               placeholder="Décrivez les défis auxquels votre entreprise fait face actuellement"
-//               value={formData.companyChallenges}
-//               onChange={(e) => setFormData({ ...formData, companyChallenges: e.target.value })}
-//             />
-//           </div>
+  // Animation variants pour les transitions
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
 
-//           <div className="space-y-2">
-//             <Label htmlFor="referralSource">Comment avez-vous entendu parler de nous?</Label>
-//             <Select
-//               name="referralSource"
-//               value={formData.referralSource}
-//               onValueChange={(value) => setFormData({ ...formData, referralSource: value })}
-//             >
-//               <SelectTrigger>
-//                 <SelectValue placeholder="Sélectionnez une option" />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="SOCIAL_MEDIA">Réseaux sociaux</SelectItem>
-//                 <SelectItem value="SEARCH">Moteur de recherche</SelectItem>
-//                 <SelectItem value="FRIEND">Recommandation</SelectItem>
-//                 <SelectItem value="EVENT">Événement</SelectItem>
-//                 <SelectItem value="OTHER">Autre</SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
+  // Rendu de la barre de progression des étapes
+  const renderProgressSteps = () => {
+    const steps = [
+      { number: 1, title: "Identité", icon: <User className="h-5 w-5" /> },
+      { number: 2, title: "Validation", icon: <Mail className="h-5 w-5" /> },
+      { number: 3, title: "Profil", icon: <Building2 className="h-5 w-5" /> },
+    ]
 
-//           <div className="flex items-center space-x-2">
-//             <Checkbox
-//               id="subscribedToNewsletter"
-//               name="subscribedToNewsletter"
-//               checked={formData.subscribedToNewsletter}
-//               onCheckedChange={(checked) => setFormData({ ...formData, subscribedToNewsletter: checked as boolean })}
-//             />
-//             <Label htmlFor="subscribedToNewsletter">Je souhaite recevoir la newsletter</Label>
-//           </div>
+    return (
+      <div className="mb-6">
+        <div className="flex items-center justify-between relative">
+          {/* Ligne de connexion */}
+          <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
 
-//           <div className="rounded-lg border p-4">
-//             <h3 className="font-medium mb-2">Informations bancaires</h3>
-//             <p className="text-sm text-muted-foreground mb-4">
-//               Vos informations bancaires sont nécessaires pour réserver votre place, mais vous ne serez pas débité
-//               pendant la période d'essai gratuit.
-//             </p>
+          {steps.map((item) => (
+            <div key={item.number} className="flex flex-col items-center z-10 relative">
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${
+                  step >= item.number
+                    ? "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-lg"
+                    : "bg-white border-2 border-gray-200 text-gray-400"
+                }`}
+              >
+                {step > item.number ? <Check className="h-6 w-6" /> : item.icon}
+              </div>
+              <span className={`text-xs font-medium ${step >= item.number ? "text-indigo-700" : "text-gray-500"}`}>
+                {item.title}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
-//             <div className="space-y-4">
-//               <div className="space-y-2">
-//                 <Label htmlFor="cardNumber">Numéro de carte</Label>
-//                 <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-//               </div>
+  // Composant pour afficher le label avec indication de champ obligatoire
+  const RequiredLabel = ({
+    htmlFor,
+    children,
+    tooltip,
+  }: { htmlFor: string; children: React.ReactNode; tooltip?: string }) => (
+    <div className="flex items-center">
+      <Label htmlFor={htmlFor} className="flex items-center">
+        {children} <span className="text-red-500 ml-1">*</span>
+      </Label>
+      {tooltip && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-4 w-4 ml-1 text-gray-400 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs text-xs">{tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </div>
+  )
 
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="expiryDate">Date d'expiration</Label>
-//                   <Input id="expiryDate" placeholder="MM/AA" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="cvv">CVV</Label>
-//                   <Input id="cvv" placeholder="123" />
-//                 </div>
-//               </div>
+  // Composant pour afficher un message d'erreur de validation
+  const ErrorMessage = ({ message }: { message: string }) => (
+    <div className="flex items-center mt-1 text-sm text-red-500">
+      <AlertCircle className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+      <span>{message}</span>
+    </div>
+  )
 
-//               <div className="space-y-2">
-//                 <Label htmlFor="cardName">Nom sur la carte</Label>
-//                 <Input id="cardName" placeholder="John Doe" />
-//               </div>
-//             </div>
-//           </div>
+  return (
+    <form onSubmit={handleSubmit} className="py-6 px-8">
+      {renderProgressSteps()}
 
-//           <div className="rounded-lg border p-4">
-//             <div className="flex items-center space-x-2">
-//               <Checkbox id="terms" required />
-//               <Label htmlFor="terms" className="text-sm">
-//                 J'accepte les{" "}
-//                 <Link href="#" className="text-primary hover:underline">
-//                   conditions d'utilisation
-//                 </Link>{" "}
-//                 et la{" "}
-//                 <Link href="#" className="text-primary hover:underline">
-//                   politique de confidentialité
-//                 </Link>
-//               </Label>
-//             </div>
-//           </div>
+      {step === 1 && (
+        <motion.div className="space-y-5" initial="hidden" animate="visible" variants={fadeInUp}>
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Informations personnelles</h3>
+            <p className="text-gray-500 text-sm">
+              Commençons par quelques informations de base vous concernant.
+              <span className="text-red-500 ml-1">*</span>
+              <span className="italic text-xs ml-1">Champs obligatoires</span>
+            </p>
+          </div>
 
-//           <div className="flex justify-between">
-//             <Button type="button" variant="outline" onClick={prevStep}>
-//               Retour
-//             </Button>
-//             <Button type="submit" disabled={isSubmitting}>
-//               {isSubmitting ? (
-//                 <>
-//                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-//                   Traitement...
-//                 </>
-//               ) : (
-//                 "Finaliser l'inscription"
-//               )}
-//             </Button>
-//           </div>
-//         </div>
-//       )}
-//     </form>
-//   )
-// }
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <RequiredLabel htmlFor="firstName">Prénom</RequiredLabel>
+              <Input
+                id="firstName"
+                name="firstName"
+                required
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <RequiredLabel htmlFor="lastName">Nom</RequiredLabel>
+              <Input
+                id="lastName"
+                name="lastName"
+                required
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <RequiredLabel
+              htmlFor="email"
+              tooltip="Utilisez une adresse email professionnelle valide. Elle sera vérifiée à l'étape suivante."
+            >
+              Email professionnel
+            </RequiredLabel>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className={validationErrors.email ? "border-red-300 focus:border-red-500" : ""}
+            />
+            {validationErrors.email && <ErrorMessage message={validationErrors.email} />}
+          </div>
+
+          <div className="space-y-2">
+            <RequiredLabel htmlFor="country">Pays</RequiredLabel>
+            <Select
+              name="country"
+              value={formData.country}
+              onValueChange={(value) => setFormData({ ...formData, country: value })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez votre pays" />
+              </SelectTrigger>
+              <SelectContent className="max-h-80">
+                {countriesList.map((country) => (
+                  <SelectItem key={country.code} value={country.code}>
+                    <div className="flex items-center">
+                      <span className="mr-2">{country.flag}</span>
+                      <span>{country.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <RequiredLabel
+              htmlFor="phone"
+              tooltip="Le format du numéro dépend du pays sélectionné. Vous pouvez commencer par le préfixe international (+) ou par 0."
+            >
+              Téléphone
+            </RequiredLabel>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              placeholder={
+                formData.country
+                  ? `Ex: ${countriesList.find((c) => c.code === formData.country)?.example}`
+                  : "Saisissez votre numéro avec ou sans préfixe international"
+              }
+              className={validationErrors.phone ? "border-red-300 focus:border-red-500" : ""}
+            />
+            {validationErrors.phone && <ErrorMessage message={validationErrors.phone} />}
+            {formData.country && !validationErrors.phone && (
+              <p className="text-xs text-gray-500 mt-1">
+                Format attendu: {countriesList.find((c) => c.code === formData.country)?.example}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <RequiredLabel htmlFor="companyName">Nom de l'entreprise</RequiredLabel>
+            <Input
+              id="companyName"
+              name="companyName"
+              required
+              value={formData.companyName}
+              onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <RequiredLabel htmlFor="city">Ville (Siège social)</RequiredLabel>
+            <Input
+              id="city"
+              name="city"
+              required
+              placeholder="Ex: Paris"
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <RequiredLabel htmlFor="companySize">Taille de l'entreprise</RequiredLabel>
+            <Select
+              name="companySize"
+              value={formData.companySize}
+              onValueChange={(value) => setFormData({ ...formData, companySize: value })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez la taille" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="STARTUP">Startup</SelectItem>
+                <SelectItem value="PME">PME</SelectItem>
+                <SelectItem value="GRANDE_ENTREPRISE">Grande entreprise</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="mt-8">
+            <Button
+              type="button"
+              onClick={nextStep}
+              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800"
+              disabled={!validateStep1()}
+            >
+              Continuer <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {step === 2 && (
+        <motion.div className="space-y-6" initial="hidden" animate="visible" variants={fadeInUp}>
+          <div className="mb-6 text-center">
+            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="h-8 w-8 text-indigo-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Vérification d'email</h3>
+            <p className="text-gray-500 text-sm mt-1">Nous devons vérifier votre adresse email avant de continuer</p>
+          </div>
+
+          <EmailVerification email={formData.email} onVerified={handleEmailVerified} onBack={prevStep} />
+
+          {isEmailVerified && (
+            <div className="flex items-center justify-center mt-4 text-green-600">
+              <CheckCircle2 className="h-5 w-5 mr-2" />
+              <span>Email vérifié avec succès!</span>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {step === 3 && (
+        <motion.div className="space-y-5" initial="hidden" animate="visible" variants={fadeInUp}>
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Profil entreprise</h3>
+            <p className="text-gray-500 text-sm">
+              Parlez-nous un peu plus de votre entreprise.
+              <span className="text-red-500 ml-1">*</span>
+              <span className="italic text-xs ml-1">Champs obligatoires</span>
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <RequiredLabel htmlFor="sector">Secteur d'activité</RequiredLabel>
+            <Select
+              name="sector"
+              value={formData.sector}
+              onValueChange={(value) => setFormData({ ...formData, sector: value })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez votre secteur" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="TECHNOLOGIE">Technologie</SelectItem>
+                <SelectItem value="AGRO_HALIEUTIQUE">Agro-Halieutique</SelectItem>
+                <SelectItem value="FINANCE">Finance</SelectItem>
+                <SelectItem value="SANTE">Santé</SelectItem>
+                <SelectItem value="ENERGIE_DURABILITE">Énergie & Durabilité</SelectItem>
+                <SelectItem value="TRANSPORT">Transport</SelectItem>
+                <SelectItem value="INDUSTRIE">Industrie</SelectItem>
+                <SelectItem value="COMMERCE_DISTRIBUTION">Commerce & Distribution</SelectItem>
+                <SelectItem value="SERVICES_PROFESSIONNELS">Services Professionnels</SelectItem>
+                <SelectItem value="EDUCATION">Éducation</SelectItem>
+                <SelectItem value="TOURISME">Tourisme</SelectItem>
+                <SelectItem value="MEDIA_DIVERTISSEMENT">Média & Divertissement</SelectItem>
+                <SelectItem value="AUTRE">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {formData.sector === "AUTRE" && (
+            <div className="space-y-2">
+              <RequiredLabel htmlFor="otherSector">Précisez votre secteur</RequiredLabel>
+              <Input
+                id="otherSector"
+                name="otherSector"
+                required
+                value={formData.otherSector}
+                onChange={(e) => setFormData({ ...formData, otherSector: e.target.value })}
+                placeholder="Veuillez préciser votre secteur d'activité"
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <RequiredLabel
+              htmlFor="mainNeed"
+              tooltip="Sélectionnez le besoin principal qui correspond le mieux à vos objectifs actuels."
+            >
+              Besoin principal
+            </RequiredLabel>
+            <Select
+              name="mainNeed"
+              value={formData.mainNeed}
+              onValueChange={(value) => setFormData({ ...formData, mainNeed: value })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Dites-nous en plus sur vos besoins !" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PRESENTATION_MARQUE">Présenter votre marque, votre vitrine</SelectItem>
+                <SelectItem value="RESEAU_B2B">Développer votre réseau B2B</SelectItem>
+                <SelectItem value="TALENTS_QUALIFIES">Attirer des talents qualifiés grâce au matching</SelectItem>
+                <SelectItem value="TABLEAUX_BORD">
+                  Suivre vos performances via des tableaux de bord analytiques
+                </SelectItem>
+                <SelectItem value="INSIGHTS_SECTORIELS">
+                  Accéder à des insights sectoriels et des rapports de tendances
+                </SelectItem>
+                <SelectItem value="OFFRES_EMPLOI">Accéder aux offres d'emploi disponibles sur la plateforme</SelectItem>
+                <SelectItem value="MENTORS_SECTORIELS">Être mis en relation avec des mentors sectoriels</SelectItem>
+                <SelectItem value="FREELANCE_HUB">
+                  Accéder au Freelance & Consulting Hub pour publier des missions
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="companyWebsite">Site web de l'entreprise (optionnel)</Label>
+            <Input
+              id="companyWebsite"
+              name="companyWebsite"
+              placeholder="https://example.com"
+              value={formData.companyWebsite}
+              onChange={(e) => setFormData({ ...formData, companyWebsite: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="companyDescription">Description de l'entreprise (optionnel)</Label>
+            <Textarea
+              id="companyDescription"
+              name="companyDescription"
+              placeholder="Une brève description de votre entreprise et de ses activités"
+              className="min-h-[80px]"
+              value={formData.companyDescription}
+              onChange={(e) => setFormData({ ...formData, companyDescription: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label>Besoins additionnels (optionnel)</Label>
+            <div className="grid sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-brand"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("PRESENTATION_MARQUE")}
+                  onCheckedChange={(checked) => handleNeedChange("PRESENTATION_MARQUE", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-brand" className="font-medium">
+                    Présentation de marque
+                  </Label>
+                  <p className="text-xs text-gray-500">Augmentez votre visibilité</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-b2b"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("RESEAU_B2B")}
+                  onCheckedChange={(checked) => handleNeedChange("RESEAU_B2B", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-b2b" className="font-medium">
+                    Réseau B2B
+                  </Label>
+                  <p className="text-xs text-gray-500">Développez vos partenariats</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-recruitment"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("TALENTS_QUALIFIES")}
+                  onCheckedChange={(checked) => handleNeedChange("TALENTS_QUALIFIES", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-recruitment" className="font-medium">
+                    Talents qualifiés
+                  </Label>
+                  <p className="text-xs text-gray-500">Recrutez les meilleurs</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-analytics"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("TABLEAUX_BORD")}
+                  onCheckedChange={(checked) => handleNeedChange("TABLEAUX_BORD", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-analytics" className="font-medium">
+                    Tableaux de bord
+                  </Label>
+                  <p className="text-xs text-gray-500">Suivez vos performances</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-insights"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("INSIGHTS_SECTORIELS")}
+                  onCheckedChange={(checked) => handleNeedChange("INSIGHTS_SECTORIELS", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-insights" className="font-medium">
+                    Insights sectoriels
+                  </Label>
+                  <p className="text-xs text-gray-500">Accédez aux tendances</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-jobs"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("OFFRES_EMPLOI")}
+                  onCheckedChange={(checked) => handleNeedChange("OFFRES_EMPLOI", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-jobs" className="font-medium">
+                    Offres d'emploi
+                  </Label>
+                  <p className="text-xs text-gray-500">Consultez les opportunités</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-mentoring"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("MENTORS_SECTORIELS")}
+                  onCheckedChange={(checked) => handleNeedChange("MENTORS_SECTORIELS", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-mentoring" className="font-medium">
+                    Mentors sectoriels
+                  </Label>
+                  <p className="text-xs text-gray-500">Bénéficiez d'expertise</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="need-freelance"
+                  className="mt-1"
+                  checked={formData.companyNeeds.includes("FREELANCE_HUB")}
+                  onCheckedChange={(checked) => handleNeedChange("FREELANCE_HUB", checked as boolean)}
+                />
+                <div>
+                  <Label htmlFor="need-freelance" className="font-medium">
+                    Freelance Hub
+                  </Label>
+                  <p className="text-xs text-gray-500">Publiez des missions</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="companyChallenges">Défis actuels de votre entreprise (optionnel)</Label>
+            <Textarea
+              id="companyChallenges"
+              name="companyChallenges"
+              placeholder="Quels sont les principaux défis auxquels votre entreprise fait face actuellement?"
+              className="min-h-[80px]"
+              value={formData.companyChallenges}
+              onChange={(e) => setFormData({ ...formData, companyChallenges: e.target.value })}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 mt-4">
+            <Checkbox
+              id="subscribedToNewsletter"
+              checked={formData.subscribedToNewsletter}
+              onCheckedChange={(checked) => setFormData({ ...formData, subscribedToNewsletter: checked as boolean })}
+            />
+            <Label htmlFor="subscribedToNewsletter" className="text-sm text-gray-600">
+              Je souhaite recevoir des informations sur les événements et opportunités
+            </Label>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
+            <Button type="button" variant="outline" onClick={prevStep} className="order-1 sm:order-none">
+              Retour
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !validateStep3()}
+              className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Traitement...
+                </>
+              ) : (
+                "Finaliser l'inscription"
+              )}
+            </Button>
+          </div>
+        </motion.div>
+      )}
+    </form>
+  )
+}
