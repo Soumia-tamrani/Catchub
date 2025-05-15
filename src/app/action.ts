@@ -2,7 +2,6 @@
 
 import { PrismaClient } from "@prisma/client"
 import { z } from "zod"
-// Supprimer l'import de isValidPhoneNumber
 
 const prisma = new PrismaClient()
 
@@ -87,6 +86,7 @@ const professionalLeadSchema = z.object({
   utmCampaign: z.string().optional().nullable(),
   emailVerified: z.boolean().default(false),
   contractType: z.nativeEnum(TypeContrat).optional().nullable(),
+  parrainId: z.string().optional().nullable(), // Champ optionnel pour le parrain salma
 })
 
 // Modifier également le schéma pour les entreprises
@@ -166,6 +166,7 @@ export async function registerProfessional(formData: FormData) {
       utmCampaign: (formData.get("utmCampaign") as string) || null,
       emailVerified: formData.get("emailVerified") === "true",
       contractType: (formData.get("contractType") as string) || null,
+      parrainId: formData.get("parrainId") as string | null, // Champ optionnel pour le parrain salma
     }
 
     console.log("Parsed data before validation:", rawData)
@@ -213,11 +214,10 @@ export async function registerProfessional(formData: FormData) {
           Prénom: validated.firstName,
           Nom: validated.lastName,
           Téléphone_mobile: validated.phone,
-          city: validated.city, // Renommé de "address" à "city"
-          country: validated.country, // Nouveau champ
+          city: validated.city, 
+          country: validated.country, 
           sector: validated.sector as any,
           besoinPrincipal: ProfessionalInterest.EMPLOI as any,
-          typeContrat: typeContrat as any,
           subscribedToNewsletter: validated.subscribedToNewsletter,
           referralSource: validated.referralSource || null,
           utmSource: validated.utmSource || null,
@@ -242,8 +242,20 @@ export async function registerProfessional(formData: FormData) {
           },
         },
       })
-      return { success: true, user }
+      return { success: true, redirectTo: `/register/success?userId=${user.id}` }; // Rediriger vers la page de succès salma
+
     } else {
+      // Étape 1 : Extraire et vérifier l’ID du parrain
+  let parrainUserId: string | null = null;
+
+  if (formData.get("parrainId")) {
+    const parrainUser = await prisma.user.findUnique({
+      where: { id: formData.get("parrainId") as string },
+    });
+    if (parrainUser) {
+      parrainUserId = parrainUser.id;
+    } // salma
+  }
       const user = await prisma.user.create({
         data: {
           Prénom: validated.firstName,
@@ -251,11 +263,10 @@ export async function registerProfessional(formData: FormData) {
           Email: validated.email,
           Téléphone_mobile: validated.phone,
           role: UserRole.PROFESSIONAL as any,
-          city: validated.city, // Renommé de "address" à "city"
-          country: validated.country, // Nouveau champ
+          city: validated.city, 
+          country: validated.country, 
           sector: validated.sector as any,
           besoinPrincipal: ProfessionalInterest.EMPLOI as any,
-          typeContrat: typeContrat as any,
           subscribedToNewsletter: validated.subscribedToNewsletter,
           registeredForTrial: true,
           referralSource: validated.referralSource || null,
@@ -265,12 +276,13 @@ export async function registerProfessional(formData: FormData) {
           registrationDate: new Date(),
           ipAddress: "127.0.0.1",
           emailVerified: validated.emailVerified,
+          parrainId: parrainUserId, // salma
           professionalDetails: {
             create: {
               professionalInterests: validated.professionalInterests as any[],
               professionalChallenges: validated.professionalChallenges || null,
               city: validated.city as any,
-              country: validated.country,
+              country: validated.country,      
             },
           },
         },

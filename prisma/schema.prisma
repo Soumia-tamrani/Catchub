@@ -77,9 +77,9 @@ model User {
   createdAt            DateTime  @default(now())
   emailVerified        Boolean?  @db.Boolean
 
+
   // Champs du formulaire court
   besoinPrincipal      ProfessionalInterest
-  typeContrat          TypeContrat? // si besoinPrincipal = EMPLOI
 
   // Relations
   professionalDetails  ProfessionalDetail?
@@ -96,6 +96,10 @@ model User {
   utmSource              String?
   utmMedium              String?
   utmCampaign            String?
+    // Parrainage
+  parrainId              String?
+  parrain                User?     @relation("Parrainage", fields: [parrainId], references: [id])
+  filleuls               User[]    @relation("Parrainage")
 }
 
 model ProfessionalDetail {

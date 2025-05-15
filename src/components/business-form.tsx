@@ -372,7 +372,7 @@ export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStep
               htmlFor="phone"
               tooltip="Le format du numéro dépend du pays sélectionné. Vous pouvez commencer par le préfixe international (+) ou par 0."
             >
-              Téléphone
+              Téléphone de l'entreprise 
             </RequiredLabel>
             <Input
               id="phone"

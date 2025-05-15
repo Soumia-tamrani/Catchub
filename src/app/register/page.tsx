@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserRound, Building2, CheckCircle, Star, Gift, Clock, Zap, ArrowLeft } from "lucide-react"
@@ -13,6 +14,9 @@ export default function RegisterPage() {
   const [hoverPro, setHoverPro] = useState(false)
   const [hoverBiz, setHoverBiz] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
+  // Récupération du parrainId depuis l'URL
+  const searchParams = useSearchParams()
+  const parrainId = searchParams.get("ref") || ""
 
   // Get UTM parameters if available
   const utmSource = ""
@@ -343,7 +347,7 @@ export default function RegisterPage() {
               <CardContent className="p-0">
                 {activeTab === "professional" ? (
                   <div className="w-full">
-                    <ProfessionalForm utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} />
+                    <ProfessionalForm utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} parrainId={parrainId}  />
                   </div>
                 ) : (
                   <div className="w-full">

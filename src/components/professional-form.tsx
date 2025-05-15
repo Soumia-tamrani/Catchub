@@ -30,16 +30,18 @@ const formSchema = z.object({
   professionalChallenges: z.string().optional(),
   subscribedToNewsletter: z.boolean().default(false),
   referralSource: z.string().optional(),
+  parrainId: z.string().optional(), // Ajoutez le champ parrainId salma
 })
 
 interface ProfessionalFormProps {
   utmSource?: string
   utmMedium?: string
   utmCampaign?: string
+  parrainId?: string // Ajoutez le champ parrainId salma
   onStepChange?: (step: number) => void
 }
 
-export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, onStepChange }: ProfessionalFormProps) {
+export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, parrainId ,onStepChange }: ProfessionalFormProps) {
   const [step, setStep] = useState(1)
   const router = useRouter()
   const [isEmailVerified, setIsEmailVerified] = useState(false)
@@ -59,6 +61,7 @@ export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, on
     professionalChallenges: "",
     subscribedToNewsletter: false,
     referralSource: "",
+    parrainId: parrainId || "", // Ajoutez le champ parrainId salma
   })
 
   useEffect(() => {
@@ -245,6 +248,7 @@ export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, on
         utmSource: utmSource || "",
         utmMedium: utmMedium || "",
         utmCampaign: utmCampaign || "",
+        parrainId: formData.parrainId || "", // Ajoutez le champ parrainId salma
       }
 
       const formDataObj = new FormData()
