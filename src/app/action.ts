@@ -378,7 +378,7 @@ export async function registerProfessional(formData: FormData) {
           },
         },
       });
-      return { success: true, redirectTo: `/register/success?userId=${user.id}` };
+      return { success: true,user, redirectTo: `/register/success?userId=${user.id}` };
     } else {
       const user = await prisma.user.create({
         data: {
