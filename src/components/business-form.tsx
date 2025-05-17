@@ -21,17 +21,23 @@ import {
   formatPhoneNumber,
 } from "@/lib/form-utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useSearchParams } from "next/navigation"
+
 
 interface BusinessFormProps {
   utmSource?: string
   utmMedium?: string
   utmCampaign?: string
   onStepChange?: (step: number) => void
+  parrainId?: string // mdfb
 }
 
 export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStepChange }: BusinessFormProps) {
   const [step, setStep] = useState(1)
   const router = useRouter()
+const searchParams = useSearchParams()//,mdb
+const parrainId = searchParams.get("ref")//mdfb
+
   const [isEmailVerified, setIsEmailVerified] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
@@ -161,6 +167,10 @@ export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStep
       if (utmMedium) formDataObj.append("utmMedium", utmMedium)
       if (utmCampaign) formDataObj.append("utmCampaign", utmCampaign)
       formDataObj.append("emailVerified", isEmailVerified.toString())
+    if (parrainId) {
+  formDataObj.append("parrainId", parrainId)
+}
+
 
       try {
         const result = await registerBusiness(formDataObj)

@@ -17,6 +17,8 @@ import { customToast } from "@/components/ui/toast"
 import { emailSchema } from "@/utils/validation"
 import PhoneInput from "react-phone-number-input"  
 import "react-phone-number-input/style.css"
+import { useSearchParams } from "next/navigation"//salma
+
 
 const formSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis"),
@@ -49,6 +51,9 @@ export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, pa
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
   const [isCheckingPhone, setIsCheckingPhone] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const searchParams = useSearchParams() // salma
+const ref = searchParams.get("ref") || ""
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -61,12 +66,22 @@ export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, pa
     professionalChallenges: "",
     subscribedToNewsletter: false,
     referralSource: "",
-    parrainId: parrainId || "", // Ajoutez le champ parrainId salma
+     parrainId: ref || parrainId || "", // salma
   })
 
   useEffect(() => {
     if (onStepChange) onStepChange(step)
   }, [step, onStepChange])
+useEffect(() => {//salma
+  if (ref && !formData.referralSource) {
+    setFormData((prev) => ({
+      ...prev,
+      parrainId: ref,
+      referralSource: "FRIEND",
+    }))
+  }
+}, [ref])
+
 
   const checkUnique = async (field: string, value: string) => {
     try {
@@ -262,6 +277,8 @@ export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, pa
           formDataObj.append("professionalInterests", interest)
         })
       }
+      formDataObj.append("parrainId", dataToSend.parrainId || "")
+
 
       const result = await registerProfessional(formDataObj)
 
@@ -289,8 +306,9 @@ export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, pa
         }
         setIsSubmitting(false)
       } else if (result.success) {
-        router.push("/register/success")
-      }
+if (result.redirectTo) {
+  router.push(result.redirectTo); // MDF: assure que l'ID est transmis à la page succès
+}      }
     } catch (error) {
       console.error("Erreur lors de l'inscription :", error)
       customToast({
