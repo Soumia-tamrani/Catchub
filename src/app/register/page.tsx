@@ -356,6 +356,8 @@ export default function RegisterPage() {
                       utmMedium={utmMedium}
                       utmCampaign={utmCampaign}
                       onStepChange={onStepChange}
+                        parrainId={parrainId}//mdfb
+
                     />
                   </div>
                 )}

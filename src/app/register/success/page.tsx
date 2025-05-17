@@ -9,7 +9,9 @@ import { useCallback } from "react"
 export default function SuccessPage() {
   const searchParams = useSearchParams()
   const userId = searchParams.get("userId")
-  const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/register?ref=${userId}`
+  //mdf
+const inviteLink = userId ? `${process.env.NEXT_PUBLIC_BASE_URL}/register?ref=${userId}` : "";
+ 
 
   const handleCopy = useCallback(() => {
     if (inviteLink) {
