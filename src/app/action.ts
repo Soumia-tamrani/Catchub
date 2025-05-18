@@ -88,6 +88,7 @@ const businessLeadSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis"),
   lastName: z.string().min(1, "Le nom est requis"),
   email: z.string().email("Email invalide"),
+  parrainId: z.string().optional().nullable(),//,mdfb
   phone: z
     .string()
     .min(1, "Le numéro de téléphone est requis")
@@ -160,17 +161,23 @@ export async function registerBusiness(formData: FormData) {
       companyWebsite: formData.get("companyWebsite") as string | null,
       companyFoundingYear: formData.get("companyFoundingYear") as string | null,
       subscribedToNewsletter: formData.get("subscribedToNewsletter") === "true",
-      referralSource: formData.get("referralSource") as string | null,
+      parrainId: formData.get("parrainId") as string | null,
+      referralSource: formData.get("referralSource") as string | null,//salma
       utmSource: formData.get("utmSource") as string | null,
       utmMedium: formData.get("utmMedium") as string | null,
       utmCampaign: formData.get("utmCampaign") as string | null,
       emailVerified: formData.get("emailVerified") === "true",
     };
+// salma 
+if (rawData.parrainId && !rawData.referralSource) {
+  rawData.referralSource = "FRIEND";
+}
 
     console.log("Raw form data:", rawData);
 
     const validated = businessLeadSchema.parse(rawData);
     console.log("Validated data:", validated);
+    
 
     const existingUser = await prisma.user.findUnique({
       where: { Email: validated.email },
@@ -250,6 +257,7 @@ export async function registerBusiness(formData: FormData) {
           besoinPrincipal: null,
           subscribedToNewsletter: validated.subscribedToNewsletter,
           registeredForTrial: true,
+         parrainId: validated.parrainId || null, //mdfb
           referralSource: validated.referralSource || null,
           utmSource: validated.utmSource || null,
           utmMedium: validated.utmMedium || null,
@@ -315,9 +323,26 @@ export async function registerProfessional(formData: FormData) {
     };
 
     console.log("Parsed data before validation:", rawData);
+    // salma
+if (rawData.parrainId && !rawData.referralSource) {
+  rawData.referralSource = "FRIEND";
+}
+
 
     const validated = professionalLeadSchema.parse(rawData);
     console.log("Validation successful:", validated);
+    // ✅ ajout salma : vérification que l'ID du parrain existe
+let parrainUserId: string | null = null;
+
+if (validated.parrainId) {
+  const parrainUser = await prisma.user.findUnique({
+    where: { id: validated.parrainId },
+  });
+  if (parrainUser) {
+    parrainUserId = parrainUser.id;
+  }
+}
+
 
     const existingUser = await prisma.user.findUnique({
       where: { Email: validated.email },
@@ -333,7 +358,6 @@ export async function registerProfessional(formData: FormData) {
       }
     }
 
-    let parrainUserId: string | null = null;
     if (validated.parrainId) {
       const parrainUser = await prisma.user.findUnique({
         where: { id: validated.parrainId },
@@ -355,6 +379,7 @@ export async function registerProfessional(formData: FormData) {
           sector: validated.sector as any,
           besoinPrincipal: validated.professionalInterests[0] as any,
           subscribedToNewsletter: validated.subscribedToNewsletter,
+          parrainId: parrainUserId, // ✅ salma
           referralSource: validated.referralSource || null,
           utmSource: validated.utmSource || null,
           utmMedium: validated.utmMedium || null,

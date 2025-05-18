@@ -4,8 +4,8 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: landingdb
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: mydb
     ports:
       - 5435:5432
     volumes:
