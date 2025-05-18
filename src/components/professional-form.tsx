@@ -289,7 +289,7 @@ export default function ProfessionalForm({ utmSource, utmMedium, utmCampaign, pa
         }
         setIsSubmitting(false)
       } else if (result.success) {
-        router.push(result.redirectTo||"/register/success")
+        router.push(result.redirectTo||"/register/success/")
       }
     } catch (error) {
       console.error("Erreur lors de l'inscription :", error)
