@@ -796,13 +796,20 @@ export default function ProfessionalForm({
                       <SelectValue placeholder="Sélectionnez votre secteur" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 bg-white rounded-lg shadow-lg border-gray-100">
-                      <SelectItem value="TECHNOLOGIE">Technologie</SelectItem>
-                      <SelectItem value="AGRO_HALIEUTIQUE">Agro-alimentaire</SelectItem>
-                      <SelectItem value="COMMERCE">Commerce</SelectItem>
-                      <SelectItem value="FINANCE">Finance</SelectItem>
-                      <SelectItem value="SANTE">Santé</SelectItem>
-                      <SelectItem value="EDUCATION">Éducation</SelectItem>
-                      <SelectItem value="AUTRE">Autre</SelectItem>
+                     <SelectItem value="TECHNOLOGIE">Technologie</SelectItem>
+                     <SelectItem value="AGRO_HALIEUTIQUE">Agro-Halieutique</SelectItem>
+                     <SelectItem value="FINANCE">Finance</SelectItem>
+                     <SelectItem value="SANTE">Santé</SelectItem>
+                     <SelectItem value="ENERGIE_DURABILITE">Énergie & Durabilité</SelectItem>
+                     <SelectItem value="TRANSPORT">Transport</SelectItem>
+                     <SelectItem value="INDUSTRIE">Industrie</SelectItem>
+                     <SelectItem value="COMMERCE_DISTRIBUTION">Commerce & Distribution</SelectItem>
+                    <SelectItem value="SERVICES_PROFESSIONNELS">Services Professionnels</SelectItem>
+                    <SelectItem value="EDUCATION">Éducation</SelectItem>
+                    <SelectItem value="TOURISME">Tourisme</SelectItem>
+                    <SelectItem value="MEDIA_DIVERTISSEMENT">Média & Divertissement</SelectItem>
+                     <SelectItem value="AUTRES">Autres</SelectItem>
+
                     </SelectContent>
                   </Select>
                   <Briefcase className="absolute left-3 top-3.5 text-gray-400" size={18} />
