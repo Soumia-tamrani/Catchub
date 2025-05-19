@@ -1,0 +1,139 @@
+/* Styles personnalisés pour le composant PhoneInput */
+
+/* Menu déroulant des pays */
+.PhoneInputCountrySelect {
+  position: relative;
+}
+
+/* Conteneur principal */
+.PhoneInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0 0.75rem;
+  height: 3rem;
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+.PhoneInput:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Partie pays avec drapeau */
+.PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  margin-right: 0.75rem;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.PhoneInput:focus-within .PhoneInputCountry {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Drapeau du pays */
+.PhoneInputCountryIcon {
+  width: 1.5rem;
+  height: 1rem;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.PhoneInputCountrySelect:focus .PhoneInputCountryIcon {
+  transform: scale(1.1);
+}
+
+/* Flèche du sélecteur */
+.PhoneInputCountrySelectArrow {
+  margin-left: 0.25rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-style: solid;
+  border-color: #6b7280;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.PhoneInputCountrySelect:focus .PhoneInputCountrySelectArrow {
+  transform: rotate(-135deg);
+}
+
+/* Champ de saisie du numéro */
+.PhoneInputInput {
+  flex: 1;
+  border: none;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  background: transparent;
+  outline: none;
+  color: #1f2937;
+  font-family: var(--font-geist-sans);
+}
+
+/* Menu déroulant des pays */
+.phone-country-select-dropdown {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.2s ease-out;
+  font-family: var(--font-geist-sans);
+}
+
+/* Options dans le menu déroulant */
+.PhoneInputCountrySelect option {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-family: var(--font-geist-sans);
+}
+
+.PhoneInputCountrySelect option:hover {
+  background-color: #f3f4f6;
+}
+
+/* Animation d'apparition */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar personnalisée */
+.phone-country-select-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.phone-country-select-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.phone-country-select-dropdown::-webkit-scrollbar-thumb {
+  background-color: #e5e7eb;
+  border-radius: 3px;
+}
+
+.phone-country-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background-color: #d1d5db;
+}
