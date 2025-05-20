@@ -7,37 +7,17 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 // Liste des pays avec leurs codes, noms et préfixes téléphoniques
-const countries = [
-  { code: "MA", name: "Maroc", prefix: "+212" },
-  { code: "FR", name: "France", prefix: "+33" },
-  { code: "BE", name: "Belgique", prefix: "+32" },
-  { code: "CH", name: "Suisse", prefix: "+41" },
-  { code: "CA", name: "Canada", prefix: "+1" },
-  { code: "SN", name: "Sénégal", prefix: "+221" },
-  { code: "CI", name: "Côte d'Ivoire", prefix: "+225" },
-  { code: "TN", name: "Tunisie", prefix: "+216" },
-  { code: "DZ", name: "Algérie", prefix: "+213" },
-  { code: "CM", name: "Cameroun", prefix: "+237" },
-  { code: "MG", name: "Madagascar", prefix: "+261" },
-  { code: "ML", name: "Mali", prefix: "+223" },
-  { code: "NE", name: "Niger", prefix: "+227" },
-  { code: "BF", name: "Burkina Faso", prefix: "+226" },
-  { code: "GN", name: "Guinée", prefix: "+224" },
-  { code: "BJ", name: "Bénin", prefix: "+229" },
-  { code: "TG", name: "Togo", prefix: "+228" },
-  { code: "GA", name: "Gabon", prefix: "+241" },
-  { code: "CG", name: "Congo", prefix: "+242" },
-  { code: "CD", name: "Rép. Dém. du Congo", prefix: "+243" },
-]
 
 interface CountrySelectorProps {
-  value: string // Nom du pays (par exemple, "Maroc")
-  onChange: (value: string) => void // Passe le nom du pays
+  value: string
+  onChange: (value: string) => void
   error?: string
-  onPrefixChange?: (prefix: string) => void // Passe le préfixe téléphonique
+  onPrefixChange?: (prefix: string) => void
+  countries: { code: string; name: string; prefix: string }[] // ✅ nouvelle prop
 }
 
-export default function CountrySelector({ value, onChange, error, onPrefixChange }: CountrySelectorProps) {
+
+export default function CountrySelector({ value, onChange, error, onPrefixChange,countries }: CountrySelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [isHovered, setIsHovered] = useState(false)
