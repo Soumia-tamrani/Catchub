@@ -235,6 +235,45 @@ export default function ProfessionalForm({
       }
     }
   }
+  const handleContinue = async () => {
+  try {
+    setIsCheckingEmail(true);
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    sessionStorage.setItem(`verification_${formData.email}`, verificationToken);
+
+    const emailContent = {
+      to: formData.email,
+      subject: "Vérification de votre adresse email",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #2563eb;">Vérification de votre adresse email</h2>
+          <p>Merci de votre inscription ! Voici votre code :</p>
+          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold;">
+            ${verificationToken}
+          </div>
+          <p>Ce code est valable pendant 10 minutes.</p>
+        </div>
+      `,
+    };
+
+    const response = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(emailContent),
+    });
+
+    if (!response.ok) throw new Error("Échec de l’envoi du code");
+
+    setStep(2);
+  } catch (error) {
+    console.error("Erreur :", error);
+    toast.error("Erreur lors de l’envoi de l’email de vérification.");
+  } finally {
+    setIsCheckingEmail(false);
+  }
+};
 
   const handlePhoneChange = (value: string) => {
     setFormData((prev) => ({ ...prev, phone: value || "" }))
@@ -706,7 +745,7 @@ export default function ProfessionalForm({
             <div className="flex justify-end pt-6 border-t border-gray-100">
               <Button
                 type="button"
-                onClick={nextStep}
+                onClick={handleContinue}
                 disabled={isSubmitting || isCheckingEmail || isCheckingPhone}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 rounded-lg shadow-md transition-all duration-300 font-semibold text-white"
               >
