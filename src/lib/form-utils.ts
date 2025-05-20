@@ -1,31 +1,53 @@
 /**
  * Utilitaires pour la validation des formulaires
  */
+import countries from "i18n-iso-countries";
+countries.registerLocale(require("i18n-iso-countries/langs/fr.json"));
+import { getCountryCallingCode } from "libphonenumber-js";
 
-// Liste des pays avec leurs codes, drapeaux, préfixes et patterns de validation
-export const countriesList = [
+// Liste complète des pays avec leurs codes, noms, préfixes et motifs de validation
+export const countriesList = Object.entries(countries.getNames("fr")).map(([code, name]) => {
+  let callingCode = "";
+  try {
+    callingCode = getCountryCallingCode(code as any);
+  } catch (e) {
+    callingCode = "";
+  }
+  return {
+    code: code.toUpperCase(),
+    name,
+    flag: `https://flagcdn.com/w20/${code.toLowerCase()}.png`, // URL de l'image du drapeau
+    prefix: callingCode ? `+${callingCode}` : "",
+    phonePattern: "^\\+?[0-9]{8,}$", // Motif générique si non spécifié
+    example: "Format international", // Exemple générique
+    digitCount: 10, // Valeur par défaut
+  };
+}).sort((a, b) => a.name.localeCompare(b.name, "fr"));
+
+// Surcharger les pays spécifiques avec des motifs de validation précis
+const specificCountries = [
   {
     code: "FR",
     name: "France",
-    flag: "🇫🇷",
+    flag: "https://flagcdn.com/w20/fr.png",
     prefix: "+33",
     phonePattern: "^(\\+33|0)[1-9][0-9]{8}$",
     example: "+33 6 12 34 56 78 ou 06 12 34 56 78",
     digitCount: 10,
   },
-  {
+ {
     code: "MA",
     name: "Maroc",
-    flag: "🇲🇦",
+    flag: "https://flagcdn.com/w20/ma.png",
     prefix: "+212",
-    phonePattern: "^(\\+212|0)[67][0-9]{8}$", // Uniquement 06 ou 07
-    example: "+212 6 12 34 56 78 ou 06 12 34 56 78",
+    phonePattern: "^(\\+212|0)[5-7][0-9]{8}$",
+    example: "+212 5 12 34 56 78, +212 6 12 34 56 78, ou +212 7 12 34 56 78",
     digitCount: 10,
   },
   {
     code: "BE",
     name: "Belgique",
-    flag: "🇧🇪",
+    flag: "https://flagcdn.com/w20/be.png",
     prefix: "+32",
     phonePattern: "^(\\+32|0)[1-9][0-9]{7,8}$",
     example: "+32 4 12 34 56 78 ou 04 12 34 56 78",
@@ -34,7 +56,7 @@ export const countriesList = [
   {
     code: "CH",
     name: "Suisse",
-    flag: "🇨🇭",
+    flag: "https://flagcdn.com/w20/ch.png",
     prefix: "+41",
     phonePattern: "^(\\+41|0)[1-9][0-9]{8}$",
     example: "+41 76 123 45 67 ou 076 123 45 67",
@@ -43,7 +65,7 @@ export const countriesList = [
   {
     code: "LU",
     name: "Luxembourg",
-    flag: "🇱🇺",
+    flag: "https://flagcdn.com/w20/lu.png",
     prefix: "+352",
     phonePattern: "^(\\+352|0)[1-9][0-9]{7,8}$",
     example: "+352 621 123 456 ou 621 123 456",
@@ -52,7 +74,7 @@ export const countriesList = [
   {
     code: "CA",
     name: "Canada",
-    flag: "🇨🇦",
+    flag: "https://flagcdn.com/w20/ca.png",
     prefix: "+1",
     phonePattern: "^(\\+1|0)[2-9][0-9]{9}$",
     example: "+1 514 123 4567 ou 514 123 4567",
@@ -61,7 +83,7 @@ export const countriesList = [
   {
     code: "SN",
     name: "Sénégal",
-    flag: "🇸🇳",
+    flag: "https://flagcdn.com/w20/sn.png",
     prefix: "+221",
     phonePattern: "^(\\+221|0)[7-9][0-9]{8}$",
     example: "+221 77 123 45 67 ou 77 123 45 67",
@@ -70,7 +92,7 @@ export const countriesList = [
   {
     code: "CI",
     name: "Côte d'Ivoire",
-    flag: "🇨🇮",
+    flag: "https://flagcdn.com/w20/ci.png",
     prefix: "+225",
     phonePattern: "^(\\+225|0)[0-9]{10}$",
     example: "+225 07 12 34 56 78 ou 07 12 34 56 78",
@@ -79,7 +101,7 @@ export const countriesList = [
   {
     code: "CM",
     name: "Cameroun",
-    flag: "🇨🇲",
+    flag: "https://flagcdn.com/w20/cm.png",
     prefix: "+237",
     phonePattern: "^(\\+237|0)[2-9][0-9]{8}$",
     example: "+237 6 12 34 56 78 ou 6 12 34 56 78",
@@ -88,7 +110,7 @@ export const countriesList = [
   {
     code: "DZ",
     name: "Algérie",
-    flag: "🇩🇿",
+    flag: "https://flagcdn.com/w20/dz.png",
     prefix: "+213",
     phonePattern: "^(\\+213|0)[5-9][0-9]{8}$",
     example: "+213 5 12 34 56 78 ou 05 12 34 56 78",
@@ -97,7 +119,7 @@ export const countriesList = [
   {
     code: "TN",
     name: "Tunisie",
-    flag: "🇹🇳",
+    flag: "https://flagcdn.com/w20/tn.png",
     prefix: "+216",
     phonePattern: "^(\\+216|0)[0-9]{8}$",
     example: "+216 12 345 678 ou 12 345 678",
@@ -106,7 +128,7 @@ export const countriesList = [
   {
     code: "GB",
     name: "Royaume-Uni",
-    flag: "🇬🇧",
+    flag: "https://flagcdn.com/w20/gb.png",
     prefix: "+44",
     phonePattern: "^(\\+44|0)[1-9][0-9]{9,10}$",
     example: "+44 7123 456 789 ou 07123 456 789",
@@ -115,7 +137,7 @@ export const countriesList = [
   {
     code: "ES",
     name: "Espagne",
-    flag: "🇪🇸",
+    flag: "https://flagcdn.com/w20/es.png",
     prefix: "+34",
     phonePattern: "^(\\+34|0)[6-9][0-9]{8}$",
     example: "+34 612 345 678 ou 612 345 678",
@@ -124,7 +146,7 @@ export const countriesList = [
   {
     code: "IT",
     name: "Italie",
-    flag: "🇮🇹",
+    flag: "https://flagcdn.com/w20/it.png",
     prefix: "+39",
     phonePattern: "^(\\+39|0)[0-9]{9,10}$",
     example: "+39 312 345 6789 ou 312 345 6789",
@@ -133,7 +155,7 @@ export const countriesList = [
   {
     code: "DE",
     name: "Allemagne",
-    flag: "🇩🇪",
+    flag: "https://flagcdn.com/w20/de.png",
     prefix: "+49",
     phonePattern: "^(\\+49|0)[1-9][0-9]{9,10}$",
     example: "+49 151 1234 5678 ou 0151 1234 5678",
@@ -142,14 +164,19 @@ export const countriesList = [
   {
     code: "US",
     name: "États-Unis",
-    flag: "🇺🇸",
+    flag: "https://flagcdn.com/w20/us.png",
     prefix: "+1",
     phonePattern: "^(\\+1|0)[2-9][0-9]{9}$",
     example: "+1 212 555 1234 ou 212 555 1234",
     digitCount: 10,
   },
-  // Autres pays à ajouter selon les besoins
-].sort((a, b) => a.name.localeCompare(b.name)) // Tri par ordre alphabétique
+];
+
+// Mettre à jour countriesList avec les motifs spécifiques pour les pays listés
+export const updatedCountriesList = countriesList.map((country) => {
+  const specific = specificCountries.find((sc) => sc.code === country.code);
+  return specific || country;
+}).sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
 /**
  * Valide si un email est syntaxiquement correct
@@ -163,12 +190,11 @@ export const isValidEmail = (email: string): boolean => {
  * Valide un numéro de téléphone en fonction du pays sélectionné
  */
 export const isValidPhoneForCountry = (phone: string, countryCode: string): boolean => {
-  // Si le pays n'est pas dans notre liste, on accepte tous les formats (min 8 chiffres)
   if (!countryCode) {
     return /^\+?[0-9]{8,}$/.test(phone)
   }
 
-  const country = countriesList.find((c) => c.code === countryCode)
+  const country = updatedCountriesList.find((c) => c.code === countryCode)
   if (!country || !country.phonePattern) {
     return /^\+?[0-9]{8,}$/.test(phone)
   }
@@ -181,13 +207,10 @@ export const isValidPhoneForCountry = (phone: string, countryCode: string): bool
  * Détecte le pays en fonction du préfixe téléphonique
  */
 export const detectCountryFromPhone = (phone: string): string | null => {
-  // Nettoyer le numéro de téléphone
   const cleanPhone = phone.replace(/\s+/g, "")
 
-  // Si le numéro commence par +, essayer de détecter le pays
   if (cleanPhone.startsWith("+")) {
-    // Trier les pays par longueur de préfixe (du plus long au plus court) pour éviter les faux positifs
-    const sortedCountries = [...countriesList].sort((a, b) => b.prefix.length - a.prefix.length)
+    const sortedCountries = [...updatedCountriesList].sort((a, b) => b.prefix.length - a.prefix.length)
 
     for (const country of sortedCountries) {
       if (cleanPhone.startsWith(country.prefix)) {
@@ -203,21 +226,17 @@ export const detectCountryFromPhone = (phone: string): string | null => {
  * Formate un numéro de téléphone selon le format du pays
  */
 export const formatPhoneNumber = (phone: string, countryCode: string): string => {
-  // Nettoyer le numéro de téléphone
   const cleanPhone = phone.replace(/\s+/g, "")
 
-  const country = countriesList.find((c) => c.code === countryCode)
+  const country = updatedCountriesList.find((c) => c.code === countryCode)
   if (!country) return phone
 
-  // Si le numéro ne commence pas par le préfixe du pays, on le laisse tel quel
   if (!cleanPhone.startsWith("+") && !cleanPhone.startsWith("0")) {
     return phone
   }
 
-  // Formater selon le pays
   switch (countryCode) {
     case "FR":
-      // Format français: +33 6 12 34 56 78 ou 06 12 34 56 78
       if (cleanPhone.startsWith("+33")) {
         return cleanPhone.replace(/(\+33)(\d)(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5 $6")
       } else if (cleanPhone.startsWith("0")) {
@@ -225,15 +244,15 @@ export const formatPhoneNumber = (phone: string, countryCode: string): string =>
       }
       break
     case "MA":
-      // Format marocain: +212 6 12 34 56 78 ou 06 12 34 56 78
       if (cleanPhone.startsWith("+212")) {
         return cleanPhone.replace(/(\+212)(\d)(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5 $6")
       } else if (cleanPhone.startsWith("0")) {
         return cleanPhone.replace(/^0(\d)(\d{2})(\d{2})(\d{2})(\d{2})/, "0$1 $2 $3 $4 $5")
       }
       break
-    // Ajouter d'autres cas spécifiques si nécessaire
   }
 
   return phone
 }
+
+
