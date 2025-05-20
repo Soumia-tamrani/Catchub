@@ -21,6 +21,10 @@ import { cn } from "@/lib/utils"
 import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';
 import { isValidPhoneNumber } from 'react-phone-number-input';
+import { parsePhoneNumberFromString, CountryCode } from "libphonenumber-js"
+
+
+
 
 
 
@@ -96,7 +100,15 @@ const fetchCountries = async () => {
     referralSource: "",
     parrainId: ref || parrainId || "",
   })
-  const [countries, setCountries] = useState<{ name: string; code: string; prefix: string }[]>([])
+  type Country = {
+  name: string
+  code: string // ex: "FR", "MA"
+  prefix: string // ex: "+33"
+}
+
+const [countries, setCountries] = useState<Country[]>([])
+
+//const [countries, setCountries] = useState<{ name: string; code: string; prefix: string }[]>([])
 
   useEffect(() => {
   const loadCountries = async () => {
@@ -239,19 +251,32 @@ setStep(2);
   }
 
   const handlePhoneBlur = async () => {
-    const phone = formData.phone.trim()
-    if (!phone) {
-      setErrors((prev) => ({ ...prev, phone: "Le numéro de téléphone est requis" }))
-      return
-    }
-
-    
-
-    setIsCheckingPhone(true)
-    const isUnique = await checkUnique("phone", phone)
-    setIsCheckingPhone(false)
-    return isUnique
+  const phone = formData.phone.trim()
+  if (!phone) {
+    setErrors((prev) => ({ ...prev, phone: "Le numéro de téléphone est requis" }))
+    return
   }
+
+  const selected = countries.find(c => c.name === formData.country)
+  const countryCode = selected?.code // code ISO (ex: "FR", "MA")
+
+  if (countryCode) {
+   const phoneNumber = parsePhoneNumberFromString(phone, countryCode as CountryCode)
+    if (!phoneNumber || !phoneNumber.isValid()) {
+      setErrors((prev) => ({
+        ...prev,
+        phone: "Numéro de téléphone invalide pour le pays sélectionné",
+      }))
+      return false
+    }
+  }
+
+  setIsCheckingPhone(true)
+  const isUnique = await checkUnique("phone", phone)
+  setIsCheckingPhone(false)
+  return isUnique
+}
+
 
   const validateStep = (stepToValidate: number) => {
     try {
@@ -490,18 +515,24 @@ setStep(2);
   }
 
   // Gérer le changement de pays et mettre à jour le préfixe téléphonique
-  const handleCountryChange = (countryName: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      country: countryName, // Stocker le nom du pays
-    }))
-    setErrors((prev) => {
-      const newErrors = { ...prev }
-      delete newErrors.country
-      delete newErrors.phone
-      return newErrors
-    })
-  }
+ const handleCountryChange = (countryName: string) => {
+  const selected = countries.find((c) => c.name === countryName)
+  if (!selected) return
+
+  setFormData((prev) => ({
+    ...prev,
+    country: selected.name,
+    phone: selected.prefix, // affecter automatiquement le préfixe
+  }))
+
+  setErrors((prev) => {
+    const newErrors = { ...prev }
+    delete newErrors.country
+    delete newErrors.phone
+    return newErrors
+  })
+}
+
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
@@ -644,7 +675,8 @@ setStep(2);
                   <Input
                     id="phone"
                     onBlur={handlePhoneBlur}
-                    placeholder="Numéro de téléphone"
+                    placeholder={`ex: ${formData.phone || "+___"}`}
+
                     className={cn("flex-1 border-0 rounded-r-lg h-full pl-2 pr-2 focus-visible:ring-0 focus-visible:ring-offset-0", errors.phone && "text-red-600")}
                   />
                   {isCheckingPhone && (
