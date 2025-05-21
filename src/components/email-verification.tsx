@@ -244,7 +244,7 @@ export default function EmailVerification({
               ) : resendDisabled ? (
                 `Renvoyer le code (${formatTime(remainingTime)})`
               ) : (
-                "Envoyer le code de vérification"
+                "Renvoyer le code de vérification"
               )}
             </Button> */} 
 

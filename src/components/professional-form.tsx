@@ -17,104 +17,19 @@ import { toast } from "sonner"
 import { emailSchema } from "@/utils/validation"
 import { useSearchParams } from "next/navigation"
 import CountrySelector from "@/components/country-selector"
-import PhoneInputWithFlag from "@/components/phone-input-with-flag"
 import { cn } from "@/lib/utils"
+import 'react-phone-number-input/style.css';
+import PhoneInput from 'react-phone-number-input';
+import { isValidPhoneNumber } from 'react-phone-number-input';
+import { parsePhoneNumberFromString, CountryCode } from "libphonenumber-js"
 
-// Liste des pays avec leurs patterns de validation
-const countryPatterns: Record<string, string> = {
-  MA: "^(?:\\+212|0)[5-7]\\d{8}$",
-  FR: "^(?:\\+33|0)[67]\\d{8}$",
-  BE: "^(?:\\+32|0)4\\d{8}$",
-  CH: "^(?:\\+41|0)7\\d{8}$",
-  CA: "^\\+?1?\\d{10}$",
-  SN: "^(?:\\+221|0)[7]\\d{8}$",
-  CI: "^(?:\\+225|0)[7]\\d{8}$",
-  TN: "^(?:\\+216|0)?[259]\\d{7}$",
-  DZ: "^(?:\\+213|0)[567]\\d{8}$",
-  CM: "^(?:\\+237|0)[6-9]\\d{8}$",
-  MG: "^(?:\\+261|0)[3]\\d{8}$",
-  ML: "^(?:\\+223|0)[67]\\d{7}$",
-  NE: "^(?:\\+227|0)[89]\\d{7}$",
-  BF: "^(?:\\+226|0)[67]\\d{7}$",
-  GN: "^(?:\\+224|0)[6]\\d{8}$",
-  BJ: "^(?:\\+229|0)[569]\\d{7}$",
-  TG: "^(?:\\+228|0)[79]\\d{7}$",
-  GA: "^(?:\\+241|0)[67]\\d{7}$",
-  CG: "^(?:\\+242|0)[56]\\d{8}$",
-  CD: "^(?:\\+243|0)[89]\\d{8}$",
-}
 
-// Messages d'erreur par pays
-const countryErrorMessages: Record<string, string> = {
-  MA: "Le numéro marocain doit contenir 10 chiffres et commencer par 06, 07 ou 05",
-  FR: "Le numéro français doit contenir 10 chiffres et commencer par 06 ou 07",
-  BE: "Le numéro belge doit contenir 10 chiffres et commencer par 04",
-  CH: "Le numéro suisse doit contenir 10 chiffres et commencer par 07",
-  CA: "Le numéro canadien doit contenir 10 chiffres",
-  SN: "Le numéro sénégalais doit contenir 10 chiffres et commencer par 7",
-  CI: "Le numéro ivoirien doit contenir 10 chiffres et commencer par 7",
-  TN: "Le numéro tunisien doit contenir 8 chiffres et commencer par 2, 5 ou 9",
-  DZ: "Le numéro algérien doit contenir 10 chiffres et commencer par 05, 06 ou 07",
-  CM: "Le numéro camerounais doit contenir 10 chiffres et commencer par 6, 7, 8 ou 9",
-  MG: "Le numéro malgache doit contenir 10 chiffres et commencer par 03",
-  ML: "Le numéro malien doit contenir 8 chiffres et commencer par 6 ou 7",
-  NE: "Le numéro nigérien doit contenir 8 chiffres et commencer par 8 ou 9",
-  BF: "Le numéro burkinabé doit contenir 8 chiffres et commencer par 6 ou 7",
-  GN: "Le numéro guinéen doit contenir 9 chiffres et commencer par 6",
-  BJ: "Le numéro béninois doit contenir 8 chiffres et commencer par 5, 6 ou 9",
-  TG: "Le numéro togolais doit contenir 8 chiffres et commencer par 7 ou 9",
-  GA: "Le numéro gabonais doit contenir 8 chiffres et commencer par 6 ou 7",
-  CG: "Le numéro congolais doit contenir 9 chiffres et commencer par 5 ou 6",
-  CD: "Le numéro congolais (RDC) doit contenir 9 chiffres et commencer par 8 ou 9",
-}
 
-// Liste des pays pour mapper les noms aux codes et préfixes
-const countries = [
-  { code: "MA", name: "Maroc", prefix: "+212" },
-  { code: "FR", name: "France", prefix: "+33" },
-  { code: "BE", name: "Belgique", prefix: "+32" },
-  { code: "CH", name: "Suisse", prefix: "+41" },
-  { code: "CA", name: "Canada", prefix: "+1" },
-  { code: "SN", name: "Sénégal", prefix: "+221" },
-  { code: "CI", name: "Côte d'Ivoire", prefix: "+225" },
-  { code: "TN", name: "Tunisie", prefix: "+216" },
-  { code: "DZ", name: "Algérie", prefix: "+213" },
-  { code: "CM", name: "Cameroun", prefix: "+237" },
-  { code: "MG", name: "Madagascar", prefix: "+261" },
-  { code: "ML", name: "Mali", prefix: "+223" },
-  { code: "NE", name: "Niger", prefix: "+227" },
-  { code: "BF", name: "Burkina Faso", prefix: "+226" },
-  { code: "GN", name: "Guinée", prefix: "+224" },
-  { code: "BJ", name: "Bénin", prefix: "+229" },
-  { code: "TG", name: "Togo", prefix: "+228" },
-  { code: "GA", name: "Gabon", prefix: "+241" },
-  { code: "CG", name: "Congo", prefix: "+242" },
-  { code: "CD", name: "Rép. Dém. du Congo", prefix: "+243" },
-]
 
-// Liste des préfixes et indices par pays pour référence dans PhoneInputWithFlag
-const countryPrefixes: Record<string, { prefix: string; hint: string; code: string }> = {
-  Maroc: { prefix: "+212", hint: "Format: 06XXXXXXXX, 07XXXXXXXX ou 05XXXXXXXX", code: "MA" },
-  France: { prefix: "+33", hint: "Format: 06XXXXXXXX ou 07XXXXXXXX", code: "FR" },
-  Belgique: { prefix: "+32", hint: "Format: 04XXXXXXXX", code: "BE" },
-  Suisse: { prefix: "+41", hint: "Format: 07XXXXXXXX", code: "CH" },
-  Canada: { prefix: "+1", hint: "Format: XXXXXXXXXX (10 chiffres)", code: "CA" },
-  Sénégal: { prefix: "+221", hint: "Format: 7XXXXXXXX", code: "SN" },
-  "Côte d'Ivoire": { prefix: "+225", hint: "Format: 7XXXXXXXX", code: "CI" },
-  Tunisie: { prefix: "+216", hint: "Format: 2XXXXXXX, 5XXXXXXX ou 9XXXXXXX", code: "TN" },
-  Algérie: { prefix: "+213", hint: "Format: 05XXXXXXXX, 06XXXXXXXX ou 07XXXXXXXX", code: "DZ" },
-  Cameroun: { prefix: "+237", hint: "Format: 6XXXXXXXX, 7XXXXXXXX, 8XXXXXXXX ou 9XXXXXXXX", code: "CM" },
-  Madagascar: { prefix: "+261", hint: "Format: 03XXXXXXXX", code: "MG" },
-  Mali: { prefix: "+223", hint: "Format: 6XXXXXXX ou 7XXXXXXX", code: "ML" },
-  Niger: { prefix: "+227", hint: "Format: 8XXXXXXX ou 9XXXXXXX", code: "NE" },
-  "Burkina Faso": { prefix: "+226", hint: "Format: 6XXXXXXX ou 7XXXXXXX", code: "BF" },
-  Guinée: { prefix: "+224", hint: "Format: 6XXXXXXXX", code: "GN" },
-  Bénin: { prefix: "+229", hint: "Format: 5XXXXXXX, 6XXXXXXX ou 9XXXXXXX", code: "BJ" },
-  Togo: { prefix: "+228", hint: "Format: 7XXXXXXX ou 9XXXXXXX", code: "TG" },
-  Gabon: { prefix: "+241", hint: "Format: 6XXXXXXX ou 7XXXXXXX", code: "GA" },
-  Congo: { prefix: "+242", hint: "Format: 5XXXXXXXX ou 6XXXXXXXX", code: "CG" },
-  "Rép. Dém. du Congo": { prefix: "+243", hint: "Format: 8XXXXXXXX ou 9XXXXXXXX", code: "CD" },
-}
+
+
+
+
 
 const formSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis"),
@@ -140,6 +55,7 @@ interface ProfessionalFormProps {
 }
 
 export default function ProfessionalForm({
+  
   utmSource,
   utmMedium,
   utmCampaign,
@@ -155,6 +71,21 @@ export default function ProfessionalForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const searchParams = useSearchParams()
   const ref = searchParams.get("ref") || ""
+const fetchCountries = async () => {
+  try {
+    const res = await fetch("https://restcountries.com/v3.1/all")
+    const data = await res.json()
+    const countryList = data.map((country: any) => ({
+      name: country.translations?.fra?.common || country.name.common,
+      code: country.cca2,
+      prefix: country.idd.root + (country.idd.suffixes?.[0] || ""),
+    }))
+    return countryList.sort((a: any, b: any) => a.name.localeCompare(b.name))
+  } catch (error) {
+    console.error("Erreur lors du chargement des pays :", error)
+    return []
+  }
+}
 
   // Initialiser avec le nom du pays "Maroc" par défaut
   const [formData, setFormData] = useState({
@@ -164,6 +95,7 @@ export default function ProfessionalForm({
     phone: "+212", // Préfixe par défaut pour Maroc
     city: "",
     country: "Maroc", // Nom du pays par défaut
+     selectedCountryCode: "MA", // Par défaut Maroc
     sector: "",
     professionalInterests: [] as string[],
     professionalChallenges: "",
@@ -171,8 +103,37 @@ export default function ProfessionalForm({
     referralSource: "",
     parrainId: ref || parrainId || "",
   })
+  type Country = {
+  name: string
+  code: string // ex: "FR", "MA"
+  prefix: string // ex: "+33"
+}
+
+const [countries, setCountries] = useState<Country[]>([])
+
+//const [countries, setCountries] = useState<{ name: string; code: string; prefix: string }[]>([])
 
   useEffect(() => {
+  const loadCountries = async () => {
+    const data = await fetchCountries()
+    setCountries(data)
+
+const defaultCountry = data.find((c: { name: string }) => c.name === "Maroc")
+    if (defaultCountry) {
+      setFormData(prev => ({
+        ...prev,
+        country: defaultCountry.name,
+        phone: defaultCountry.prefix,
+      }))
+    }
+  }
+
+  loadCountries()
+}, [])
+
+
+  useEffect(() => {
+    
     if (onStepChange) onStepChange(step)
   }, [step, onStepChange])
 
@@ -235,6 +196,51 @@ export default function ProfessionalForm({
       }
     }
   }
+  const handleContinue = async () => {
+  try {
+    setIsCheckingEmail(true);
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    sessionStorage.setItem(`verification_${formData.email}`, verificationToken);
+
+    const emailContent = {
+      to: formData.email,
+      subject: "Vérification de votre adresse email",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #2563eb;">Vérification de votre adresse email</h2>
+          <p>Merci de votre inscription ! Voici votre code :</p>
+          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold;">
+            ${verificationToken}
+          </div>
+          <p>Ce code est valable pendant 10 minutes.</p>
+        </div>
+      `,
+    };
+
+    const response = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(emailContent),
+    });
+
+    if (!response.ok) throw new Error("Échec de l’envoi du code");
+
+   if (!response.ok) throw new Error("Échec de l’envoi du code");
+
+// 👉 Indicateur pour afficher le message dans la page suivante
+sessionStorage.setItem("codeSentSuccess", "true");
+
+setStep(2);
+
+  } catch (error) {
+    console.error("Erreur :", error);
+    toast.error("Erreur lors de l’envoi de l’email de vérification.");
+  } finally {
+    setIsCheckingEmail(false);
+  }
+};
 
   const handlePhoneChange = (value: string) => {
     setFormData((prev) => ({ ...prev, phone: value || "" }))
@@ -248,33 +254,32 @@ export default function ProfessionalForm({
   }
 
   const handlePhoneBlur = async () => {
-    const phone = formData.phone.trim()
-    if (!phone) {
-      setErrors((prev) => ({ ...prev, phone: "Le numéro de téléphone est requis" }))
-      return
-    }
+  const phone = formData.phone.trim()
+  if (!phone) {
+    setErrors((prev) => ({ ...prev, phone: "Le numéro de téléphone est requis" }))
+    return
+  }
 
-    // Trouver le code du pays à partir du nom
-    const country = countries.find((c) => c.name === formData.country)
-    const countryCode = country ? country.code : ""
+  const selected = countries.find(c => c.name === formData.country)
+  const countryCode = selected?.code // code ISO (ex: "FR", "MA")
 
-    // Validation spécifique par pays
-    const pattern = countryPatterns[countryCode] || "^\\+?[0-9\\s-]{6,}$"
-    const errorMessage = countryErrorMessages[countryCode] || "Numéro de téléphone invalide"
-
-    if (!new RegExp(pattern).test(phone.replace(/\s+/g, ""))) {
+  if (countryCode) {
+   const phoneNumber = parsePhoneNumberFromString(phone, countryCode as CountryCode)
+    if (!phoneNumber || !phoneNumber.isValid()) {
       setErrors((prev) => ({
         ...prev,
-        phone: errorMessage,
+        phone: "Numéro de téléphone invalide pour le pays sélectionné",
       }))
-      return
+      return false
     }
-
-    setIsCheckingPhone(true)
-    const isUnique = await checkUnique("phone", phone)
-    setIsCheckingPhone(false)
-    return isUnique
   }
+
+  setIsCheckingPhone(true)
+  const isUnique = await checkUnique("phone", phone)
+  setIsCheckingPhone(false)
+  return isUnique
+}
+
 
   const validateStep = (stepToValidate: number) => {
     try {
@@ -306,23 +311,7 @@ export default function ProfessionalForm({
           return false
         }
 
-        if (formData.phone) {
-          // Trouver le code du pays à partir du nom
-          const country = countries.find((c) => c.name === formData.country)
-          const countryCode = country ? country.code : ""
-
-          // Validation spécifique par pays
-          const pattern = countryPatterns[countryCode] || "^\\+?[0-9\\s-]{6,}$"
-          const errorMessage = countryErrorMessages[countryCode] || "Numéro de téléphone invalide"
-
-          if (!new RegExp(pattern).test(formData.phone.replace(/\s+/g, ""))) {
-            setErrors((prev) => ({ ...prev, phone: errorMessage }))
-            toast.error("Erreur de validation", {
-              description: "Le numéro de téléphone n'est pas valide",
-            })
-            return false
-          }
-        }
+         
       }
 
       if (stepToValidate === 3) {
@@ -529,20 +518,25 @@ export default function ProfessionalForm({
   }
 
   // Gérer le changement de pays et mettre à jour le préfixe téléphonique
-  const handleCountryChange = (countryName: string) => {
-    const country = countries.find((c) => c.name === countryName)
-    setFormData((prev) => ({
-      ...prev,
-      country: countryName, // Stocker le nom du pays
-      phone: country ? country.prefix : "", // Mettre à jour le numéro avec le préfixe
-    }))
-    setErrors((prev) => {
-      const newErrors = { ...prev }
-      delete newErrors.country
-      delete newErrors.phone
-      return newErrors
-    })
-  }
+ const handleCountryChange = (countryName: string) => {
+  const selected = countries.find((c) => c.name === countryName)
+  if (!selected) return
+
+  setFormData((prev) => ({
+    ...prev,
+    country: selected.name,
+    phone: selected.prefix, // affecter automatiquement le préfixe
+    selectedCountryCode: selected.code,
+  }))
+
+  setErrors((prev) => {
+    const newErrors = { ...prev }
+    delete newErrors.country
+    delete newErrors.phone
+    return newErrors
+  })
+}
+
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
@@ -648,11 +642,13 @@ export default function ProfessionalForm({
                   Pays <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <CountrySelector
-                  value={formData.country}
-                  onChange={handleCountryChange}
-                  onPrefixChange={(prefix) => setFormData((prev) => ({ ...prev, phone: prefix }))}
-                  error={errors.country}
-                />
+  value={formData.country}
+  onChange={handleCountryChange}
+  onPrefixChange={(prefix) => setFormData((prev) => ({ ...prev, phone: prefix }))}
+  error={errors.country}
+  countries={countries} // ✅ injecte ici ta liste dynamique
+/>
+
                 {errors.country && (
                   <p className="text-red-500 text-xs flex items-center mt-1 animate-in fade-in">
                     <AlertCircle className="mr-1 h-4 w-4" /> {errors.country}
@@ -676,37 +672,43 @@ export default function ProfessionalForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center">
-                  Téléphone <span className="text-red-500 ml-1">*</span>
-                </Label>
-                <div className={cn("flex items-center rounded-lg border border-gray-300 bg-white h-12 overflow-hidden", errors.phone ? "border-red-500" : "focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100")}>
-                  <PhoneInputWithFlag country={formData.country} />
-                  <Input
-                    id="phone"
-                    value={formData.phone.replace(countryPrefixes[formData.country]?.prefix || "", "") || ""}
-                    onChange={(e) => handlePhoneChange(countryPrefixes[formData.country]?.prefix + e.target.value)}
-                    onBlur={handlePhoneBlur}
-                    placeholder="Numéro de téléphone"
-                    className={cn("flex-1 border-0 rounded-r-lg h-full pl-2 pr-2 focus-visible:ring-0 focus-visible:ring-offset-0", errors.phone && "text-red-600")}
-                  />
-                  {isCheckingPhone && (
-                    <Loader2 className="absolute right-3 top-3.5 text-blue-500 animate-spin" size={18} />
-                  )}
-                </div>
-                {errors.phone ? (
-                  <p className="text-red-500 text-xs flex items-center mt-1">
-                    <AlertCircle className="mr-1 h-4 w-4" /> {errors.phone}
-                  </p>
-                ) : (
-                  <p className="text-xs text-gray-500 mt-1">{countryPrefixes[formData.country]?.hint || "Format international"}</p>
-                )}
+                
+                <div className="space-y-2">
+  <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center">
+    Téléphone <span className="text-red-500 ml-1">*</span>
+  </Label>
+  <div
+  className={cn(
+    "rounded-lg bg-white h-12",
+    errors.phone ? "border border-red-500" : "border border-gray-300"
+  )}
+>
+
+    <PhoneInput
+defaultCountry={countries.find(c => c.name === formData.country)?.code as CountryCode || "MA"}
+      value={formData.phone}
+      onChange={(value) => setFormData(prev => ({ ...prev, phone: value || "" }))}
+      onBlur={handlePhoneBlur}
+      className="w-full border-none focus:outline-none focus:ring-0"
+      international
+      countryCallingCodeEditable={false}
+    />
+    {isCheckingPhone && <Loader2 className="ml-2 h-4 w-4 animate-spin text-blue-500" />}
+  </div>
+  {errors.phone && (
+    <p className="text-red-500 text-xs flex items-center mt-1 animate-in fade-in">
+      <AlertCircle className="mr-1 h-4 w-4" /> {errors.phone}
+    </p>
+  )}
+</div>
+
               </div>
             </div>
 
             <div className="flex justify-end pt-6 border-t border-gray-100">
               <Button
                 type="button"
-                onClick={nextStep}
+                onClick={handleContinue}
                 disabled={isSubmitting || isCheckingEmail || isCheckingPhone}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 rounded-lg shadow-md transition-all duration-300 font-semibold text-white"
               >
@@ -725,7 +727,7 @@ export default function ProfessionalForm({
             </div>
           </div>
         )}
-
+        
         {/* Étape 2 - Vérification email */}
         {step === 2 && (
           <div className="space-y-8">
@@ -796,13 +798,20 @@ export default function ProfessionalForm({
                       <SelectValue placeholder="Sélectionnez votre secteur" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 bg-white rounded-lg shadow-lg border-gray-100">
-                      <SelectItem value="TECHNOLOGIE">Technologie</SelectItem>
-                      <SelectItem value="AGRO_HALIEUTIQUE">Agro-alimentaire</SelectItem>
-                      <SelectItem value="COMMERCE">Commerce</SelectItem>
-                      <SelectItem value="FINANCE">Finance</SelectItem>
-                      <SelectItem value="SANTE">Santé</SelectItem>
-                      <SelectItem value="EDUCATION">Éducation</SelectItem>
-                      <SelectItem value="AUTRE">Autre</SelectItem>
+                     <SelectItem value="TECHNOLOGIE">Technologie</SelectItem>
+                     <SelectItem value="AGRO_HALIEUTIQUE">Agro-Halieutique</SelectItem>
+                     <SelectItem value="FINANCE">Finance</SelectItem>
+                     <SelectItem value="SANTE">Santé</SelectItem>
+                     <SelectItem value="ENERGIE_DURABILITE">Énergie & Durabilité</SelectItem>
+                     <SelectItem value="TRANSPORT">Transport</SelectItem>
+                     <SelectItem value="INDUSTRIE">Industrie</SelectItem>
+                     <SelectItem value="COMMERCE_DISTRIBUTION">Commerce & Distribution</SelectItem>
+                    <SelectItem value="SERVICES_PROFESSIONNELS">Services Professionnels</SelectItem>
+                    <SelectItem value="EDUCATION">Éducation</SelectItem>
+                    <SelectItem value="TOURISME">Tourisme</SelectItem>
+                    <SelectItem value="MEDIA_DIVERTISSEMENT">Média & Divertissement</SelectItem>
+                     <SelectItem value="AUTRES">Autres</SelectItem>
+
                     </SelectContent>
                   </Select>
                   <Briefcase className="absolute left-3 top-3.5 text-gray-400" size={18} />

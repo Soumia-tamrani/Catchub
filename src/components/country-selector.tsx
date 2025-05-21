@@ -222,17 +222,22 @@ import { Search, ChevronDown, X, Check, Globe } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { updatedCountriesList } from "@/lib/form-utils"
+
+
+
 import { motion, AnimatePresence } from "framer-motion"
+
 
 interface CountrySelectorProps {
   value: string
   onChange: (value: string) => void
   error?: string
   onPrefixChange?: (prefix: string) => void
+
 }
 
-export default function CountrySelector({ value, onChange, error, onPrefixChange }: CountrySelectorProps) {
+
+export default function CountrySelector({ value, onChange, error, onPrefixChange,countries }: CountrySelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [isHovered, setIsHovered] = useState(false)
