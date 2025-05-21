@@ -657,7 +657,7 @@ export default function ProfessionalForm({
                   <p className="text-red-500 text-xs flex items-center mt-1 animate-in fade-in">
                     <AlertCircle className="mr-1 h-4 w-4" /> {errors.country}
                   </p>
-                )}
+                )}     
               </div>
 
               <div className="space-y-2">

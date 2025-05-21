@@ -4,6 +4,9 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner" // Import du nouveau composant Sonner
 import "./globals.css"
 
+<Toaster position="top-right" /> //////////////
+
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
