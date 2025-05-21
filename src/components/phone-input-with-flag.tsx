@@ -8,6 +8,7 @@ interface PhoneInputWithFlagProps {
   flag?: string
   prefix?: string
   className?: string
+  countryCode?: string
 }
 
 // Assurez-vous que le composant ne capture pas le focus de manière inappropriée

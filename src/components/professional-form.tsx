@@ -19,7 +19,7 @@ import { useSearchParams } from "next/navigation"
 import CountrySelector from "@/components/country-selector"
 import PhoneInputWithFlag from "@/components/phone-input-with-flag"
 import { cn } from "@/lib/utils"
-
+import {updatedCountriesList} from "@/lib/form-utils";
 // Liste des pays avec leurs patterns de validation
 const countryPatterns: Record<string, string> = {
   MA: "^(?:\\+212|0)[5-7]\\d{8}$",
@@ -161,9 +161,9 @@ export default function ProfessionalForm({
     firstName: "",
     lastName: "",
     email: "",
-    phone: "+212", // Préfixe par défaut pour Maroc
+    phone: "", 
     city: "",
-    country: "Maroc", // Nom du pays par défaut
+    country: "", 
     sector: "",
     professionalInterests: [] as string[],
     professionalChallenges: "",
@@ -680,12 +680,45 @@ export default function ProfessionalForm({
                   Téléphone <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <div className={cn("flex items-center rounded-lg border border-gray-300 bg-white h-12 overflow-hidden", errors.phone ? "border-red-500" : "focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100")}>
-                  <PhoneInputWithFlag country={formData.country} />
+                  <PhoneInputWithFlag country={
+                                        updatedCountriesList.find(
+                                          (c) => c.code === formData.country
+                                        )?.name || ""
+                                      }
+                                      flag={
+                                        updatedCountriesList.find(
+                                          (c) => c.code === formData.country
+                                        )?.flag || ""
+                                      }
+                                      prefix={
+                                        updatedCountriesList.find(
+                                          (c) => c.code === formData.country
+                                        )?.prefix || ""
+                                      }
+                                    />
                   <Input
                     id="phone"
-                    value={formData.phone.replace(countryPrefixes[formData.country]?.prefix || "", "") || ""}
-                    onChange={(e) => handlePhoneChange(countryPrefixes[formData.country]?.prefix + e.target.value)}
-                    onBlur={handlePhoneBlur}
+                    value={formData.country &&
+                                          formData.phone.startsWith(
+                                            updatedCountriesList.find(
+                                              (c) => c.code === formData.country
+                                            )?.prefix || ""
+                                          )
+                                            ? formData.phone.replace(
+                                                updatedCountriesList.find(
+                                                  (c) => c.code === formData.country
+                                                )?.prefix || "",
+                                                ""
+                                              )
+                                            : formData.phone }
+                    onChange= {(e) =>
+    handlePhoneChange(
+      (updatedCountriesList.find(
+        (c) => c.code === countries.find((c) => c.name === formData.country)?.code
+      )?.prefix || "") + e.target.value
+    )
+  }
+                    onBlur={handlePhoneBlur}   
                     placeholder="Numéro de téléphone"
                     className={cn("flex-1 border-0 rounded-r-lg h-full pl-2 pr-2 focus-visible:ring-0 focus-visible:ring-offset-0", errors.phone && "text-red-600")}
                   />
@@ -816,7 +849,7 @@ export default function ProfessionalForm({
 
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                  Centres d'intérêt professionnels <span className="text-red-500 ml-1">*</span>
+                  Centres d'intérêt professionnels 
                 </Label>
                 <div className="grid md:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
                   {["MENTORAT", "RESEAUTAGE", "EMPLOI", "FORMATION", "AUTRE"].map((interest) => (
@@ -926,3 +959,4 @@ export default function ProfessionalForm({
     </form>
   )
 }
+
