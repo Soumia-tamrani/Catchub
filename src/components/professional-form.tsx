@@ -29,6 +29,8 @@ import { parsePhoneNumberFromString, CountryCode } from "libphonenumber-js"
 
 
 
+
+
 const formSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis"),
   lastName: z.string().min(1, "Le nom est requis"),
@@ -93,6 +95,7 @@ const fetchCountries = async () => {
     phone: "+212", // Préfixe par défaut pour Maroc
     city: "",
     country: "Maroc", // Nom du pays par défaut
+     selectedCountryCode: "MA", // Par défaut Maroc
     sector: "",
     professionalInterests: [] as string[],
     professionalChallenges: "",
@@ -523,6 +526,7 @@ setStep(2);
     ...prev,
     country: selected.name,
     phone: selected.prefix, // affecter automatiquement le préfixe
+    selectedCountryCode: selected.code,
   }))
 
   setErrors((prev) => {
@@ -668,26 +672,36 @@ setStep(2);
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center">
-                  Téléphone <span className="text-red-500 ml-1">*</span>
-                </Label>
-                <div className={cn("flex items-center rounded-lg border border-gray-300 bg-white h-12 overflow-hidden", errors.phone ? "border-red-500" : "focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100")}>
-                  <Input
-                    id="phone"
-                    onBlur={handlePhoneBlur}
-                    placeholder={`ex: ${formData.phone || "+___"}`}
+                
+                <div className="space-y-2">
+  <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center">
+    Téléphone <span className="text-red-500 ml-1">*</span>
+  </Label>
+  <div
+  className={cn(
+    "rounded-lg bg-white h-12",
+    errors.phone ? "border border-red-500" : "border border-gray-300"
+  )}
+>
 
-                    className={cn("flex-1 border-0 rounded-r-lg h-full pl-2 pr-2 focus-visible:ring-0 focus-visible:ring-offset-0", errors.phone && "text-red-600")}
-                  />
-                  {isCheckingPhone && (
-                    <Loader2 className="absolute right-3 top-3.5 text-blue-500 animate-spin" size={18} />
-                  )}
-                </div>
-               {errors.phone && (
-  <p className="text-red-500 text-xs flex items-center mt-1">
-    <AlertCircle className="mr-1 h-4 w-4" /> {errors.phone}
-  </p>
-)}
+    <PhoneInput
+defaultCountry={countries.find(c => c.name === formData.country)?.code as CountryCode || "MA"}
+      value={formData.phone}
+      onChange={(value) => setFormData(prev => ({ ...prev, phone: value || "" }))}
+      onBlur={handlePhoneBlur}
+      className="w-full border-none focus:outline-none focus:ring-0"
+      international
+      countryCallingCodeEditable={false}
+    />
+    {isCheckingPhone && <Loader2 className="ml-2 h-4 w-4 animate-spin text-blue-500" />}
+  </div>
+  {errors.phone && (
+    <p className="text-red-500 text-xs flex items-center mt-1 animate-in fade-in">
+      <AlertCircle className="mr-1 h-4 w-4" /> {errors.phone}
+    </p>
+  )}
+</div>
+
               </div>
             </div>
 
