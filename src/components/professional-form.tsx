@@ -16,7 +16,7 @@ import { z } from "zod"
 import { toast } from "sonner"
 import { emailSchema } from "@/utils/validation"
 import { useSearchParams } from "next/navigation"
-import CountrySelector from "@/components/country-selector"
+import CountrySelector from "@/components/country-selector-pro"
 import { cn } from "@/lib/utils"
 import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';
