@@ -229,25 +229,6 @@ export default function EmailVerification({
               )}
             </Button>
 
-            {/* <Button
-              type="button"
-              variant="ghost"
-              onClick={sendVerificationEmail}
-              disabled={isSending || resendDisabled}
-              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-            >
-              {isSending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Envoi en cours...
-                </>
-              ) : resendDisabled ? (
-                `Renvoyer le code (${formatTime(remainingTime)})`
-              ) : (
-                "Envoyer le code de vérification"
-              )}
-            </Button> */} 
-
         <Button //button de renvoi
   type="button"
   variant="ghost"
@@ -265,7 +246,7 @@ export default function EmailVerification({
   )}
 </Button>
             
-         <Button //button de retour
+         {/* <Button //button de retour
             type="button"
             variant="outline"
             onClick={onBack}
@@ -274,7 +255,7 @@ export default function EmailVerification({
           >
             <ArrowLeft className="h-4 w-4" />
             Retour
-          </Button>
+          </Button> */}
 
 
 
