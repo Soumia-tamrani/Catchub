@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight, CheckCircle, Users, Building2, Calendar, Mail, Globe, Shield, Target } from "lucide-react"
 import { useState, useEffect } from "react"
-
+import CookieBanner from '../components/cookieBanner';// ajout cookies
+import Analytics from '../components/Analytics';// ajout cookies
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false) // New state for subscription status
@@ -651,8 +652,11 @@ export default function Home() {
             </div>
           </div>
         </div>
+        {/* Bannière cookies */}
+      <CookieBanner />
       </footer>
-
+ {/* Analytics */}
+      <Analytics />
     </div>
   )
 }
