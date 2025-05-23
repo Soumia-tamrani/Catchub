@@ -68,7 +68,6 @@ model User {
   sector               Secteur
   createdAt            DateTime  @default(now())
   emailVerified        Boolean?  @db.Boolean
-  besoinPrincipal      ProfessionalInterest?
   professionalDetails   ProfessionalDetail?
   companyDetails       CompanyDetail?
   subscribedToNewsletter Boolean @default(false)
@@ -88,7 +87,7 @@ model ProfessionalDetail {
   id                     String   @id @default(uuid())
   user                   User     @relation(fields: [userId], references: [id])
   userId                 String   @unique
-  professionalInterests  ProfessionalInterest[]
+  professionalInterests  ProfessionalInterest[] @default([])
   professionalChallenges String?
   city                   String?
   country                String?

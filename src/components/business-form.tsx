@@ -25,6 +25,7 @@ import {
   Check,
   AlertCircle,
   Info,
+  ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EmailVerification from "@/components/email-verification";
@@ -964,6 +965,7 @@ export default function BusinessForm({
           )}
 
           {step === 2 && (
+            
             <motion.div
               className="space-y-6"
               initial="hidden"
@@ -996,15 +998,28 @@ export default function BusinessForm({
                 onVerified={handleEmailVerified}
                 onBack={prevStep}
               />
+<Button //button de retour
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-md border border-gray-300 text-blue-600 font-medium bg-white transition-colors duration-150 hover:bg-blue-50 hover:border-gray-100 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-200 active:scale-[0.98]"
+            style={{ width: '150px' }} // largeur fixe
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour
+          </Button>
 
               {isEmailVerified && (
                 <div className="flex items-center justify-center mt-4 text-green-600">
                   <CheckCircle2 className="h-5 w-5 mr-2" />
                   <span>Email vérifié avec succès!</span>
                 </div>
-              )}
+              
+)}
             </motion.div>
           )}
+
+
 
           {step === 3 && (
             <motion.div

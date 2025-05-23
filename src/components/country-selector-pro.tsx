@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 // Liste des pays avec leurs codes, noms et préfixes téléphoniques
 
-interface CountrySelectorProps {
+interface CountrySelectorProps {     
   value: string
   onChange: (value: string) => void
   error?: string
@@ -154,7 +154,7 @@ export default function CountrySelector({ value, onChange, error, onPrefixChange
                 >
                   <div className="flex items-center">
                     <div className="flex flex-col">
-                      <span className="font-medium">{country.name}</span>
+                      <span className="text-sm font-medium">{country.name}</span>
                       <span className="text-xs text-gray-500">{country.prefix}</span>
                     </div>
                   </div>

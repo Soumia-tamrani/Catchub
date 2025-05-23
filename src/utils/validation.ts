@@ -93,4 +93,4 @@ export const phoneSchema = z
 
     // Validation internationale par défaut
     return phoneValidationByCountry.INTL(phone)
-  }, "Numéro de téléphone invalide. Formats acceptés: +212 X XX XX XX XX, 06 XX XX XX XX (Maroc) ou format international")
+  }, "Numéro de téléphone invalide. Veuillez vérifier le format.")
