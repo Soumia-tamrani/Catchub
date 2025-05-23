@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 // Liste des pays avec leurs codes, noms et préfixes téléphoniques
 
-interface CountrySelectorProps {
+interface CountrySelectorProps {     
   value: string
   onChange: (value: string) => void
   error?: string
