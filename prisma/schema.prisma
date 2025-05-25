@@ -109,3 +109,11 @@ model CompanyDetail {
   mainNeed              String?     
   otherSector           String?     
 }
+model CookieConsent {
+  id              String   @id @default(cuid())
+  userId          String?  // Si l'utilisateur est connecté
+  sessionId       String   // Utilisé si l'utilisateur n'est pas connecté
+  consentStatus   String   // "accepted" ou "refused"
+  consentDate     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
