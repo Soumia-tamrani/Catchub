@@ -19,9 +19,9 @@ export default function PhoneInputWithFlag({ country, flag, prefix, className }:
     code: "",
   }
 
-  return (
+return (
     <div
-      className={cn("flex items-center px-3 h-12 bg-white border border-r-0 border-gray-200 rounded-l-lg", className)}
+      className={cn("flex items-center px-3 h-12 bg-white dark:bg-gray-800 border border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg", className)}
       // Désactiver complètement les interactions de focus
       tabIndex={-1}
       // Empêcher les événements de souris de perturber le focus
@@ -35,7 +35,7 @@ export default function PhoneInputWithFlag({ country, flag, prefix, className }:
             alt={`${country} flag`}
             className="mr-2 h-4 w-6"
           />
-          <span className="text-sm font-medium text-gray-700">{countryInfo.prefix || prefix || ""}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{countryInfo.prefix || prefix || ""}</span>
         </div>
       )}
     </div>

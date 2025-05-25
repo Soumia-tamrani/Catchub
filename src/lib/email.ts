@@ -4,8 +4,9 @@ import nodemailer from "nodemailer"
 
 // Configuration du transporteur d'email
 // Pour le développement, nous utilisons un service de test
-const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email", // Service de test pour le développement
+ const transporter = nodemailer.createTransport({
+  // host: "smtp.ethereal.email", // Service de test pour le développement
+  host: "smtp.office365.com",
   port: 587,
   secure: false,
   auth: {

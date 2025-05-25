@@ -80,8 +80,7 @@ export default function CountrySelector({ value, onChange, error, onPrefixChange
     setIsOpen(false)
     setSearchTerm("")
   }
-
-  return (
+return (
     <div className="relative w-full" ref={dropdownRef}>
       <Button
         type="button"
@@ -89,55 +88,55 @@ export default function CountrySelector({ value, onChange, error, onPrefixChange
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "w-full pl-4 h-12 rounded-lg border bg-white hover:bg-gray-50 text-left font-normal justify-between transition-all duration-300",
+          "w-full pl-4 h-12 rounded-lg border bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-left font-normal justify-between transition-all duration-300",
           error
-            ? "border-red-500 focus:ring-red-100 text-gray-900"
-            : "border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-900",
-          isHovered && "shadow-md",
+            ? "border-red-500 dark:border-red-400 focus:ring-red-100 dark:focus:ring-red-900/50 text-gray-900 dark:text-gray-100"
+            : "border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/50 text-gray-900 dark:text-gray-100",
+          isHovered && "shadow-md dark:shadow-gray-900/50",
         )}
       >
         {selectedCountry ? (
-          <span className="flex items-center text-gray-900">
+          <span className="flex items-center text-gray-900 dark:text-gray-100">
             <span className="font-medium">{selectedCountry.name}</span>
           </span>
         ) : (
-          <span className="flex items-center text-gray-500">
+          <span className="flex items-center text-gray-500 dark:text-gray-400">
             <Globe className="w-5 h-5 mr-2" />
             <span>Sélectionnez votre pays</span>
           </span>
         )}
         <ChevronDown
-          className={cn("h-4 w-4 text-gray-400 transition-transform duration-300", isOpen && "transform rotate-180")}
+          className={cn("h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform duration-300", isOpen && "transform rotate-180")}
         />
       </Button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg border border-gray-200 shadow-xl animate-in fade-in-50 slide-in-from-top-5 duration-200 overflow-hidden">
-          <div className="p-3 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-xl dark:shadow-gray-900/50 animate-in fade-in-50 slide-in-from-top-5 duration-200 overflow-hidden">
+          <div className="p-3 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <Input
                 ref={inputRef}
                 type="text"
                 placeholder="Rechercher un pays..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-10 w-full border-gray-200 focus:border-blue-500 focus:ring-blue-100 rounded-md"
+                className="pl-10 h-10 w-full border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-100 dark:focus:ring-blue-900/50 rounded-md"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 hover:bg-gray-100 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  <X className="h-4 w-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400" />
                 </button>
               )}
             </div>
           </div>
 
           <div
-            className="py-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
+            className="py-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
             ref={listRef}
           >
             {filteredCountries.length > 0 ? (
@@ -148,21 +147,21 @@ export default function CountrySelector({ value, onChange, error, onPrefixChange
                   ref={country.name === value ? selectedItemRef : null}
                   onClick={() => handleCountrySelect(country.name)}
                   className={cn(
-                    "w-full px-4 py-3 text-left flex items-center justify-between hover:bg-blue-50 transition-all duration-200",
-                    country.name === value ? "bg-blue-50 text-blue-700" : "text-gray-700",
+                    "w-full px-4 py-3 text-left flex items-center justify-between hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-all duration-200",
+                    country.name === value ? "bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300" : "text-gray-700 dark:text-gray-200",
                   )}
                 >
                   <div className="flex items-center">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{country.name}</span>
-                      <span className="text-xs text-gray-500">{country.prefix}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{country.prefix}</span>
                     </div>
                   </div>
-                  {country.name === value && <Check className="h-4 w-4 text-blue-600" />}
+                  {country.name === value && <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
                 </button>
               ))
             ) : (
-              <div className="px-4 py-3 text-sm text-gray-500 text-center">Aucun pays trouvé</div>
+              <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">Aucun pays trouvé</div>
             )}
           </div>
         </div>

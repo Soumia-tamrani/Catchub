@@ -21,9 +21,7 @@
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-
     "framer-motion": "^12.12.1",
-
     "i18n-iso-countries": "^7.14.0",
     "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.12.8",
@@ -42,7 +40,7 @@
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.24.3"
+    "zod": "^3.25.27"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

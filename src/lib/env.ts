@@ -31,3 +31,18 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 
 export default env;
+// import { z } from "zod"
+
+// const envSchema = z.object({
+//   // Variables serveur uniquement (sécurisées)
+//   EMAIL_SERVICE_PROVIDER: z.enum(['gmail', 'microsoft', 'Outlook365']),
+//   EMAIL_USER: z.string().email(),
+//   EMAIL_PASS: z.string().min(6),
+//   DATABASE_URL: z.string(),
+  
+//   // Variables publiques (côté client)
+//   NEXT_PUBLIC_BASE_URL: z.string().url(),
+// })
+
+// const env = envSchema.parse(process.env)
+// export default env;
