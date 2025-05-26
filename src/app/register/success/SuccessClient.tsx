@@ -82,7 +82,6 @@ export default function SuccessClient() {
             <h3 className="font-medium text-blue-800 mb-2">Comment ça marche ?</h3>
             <ul className="text-sm text-blue-700 text-left list-disc pl-4 space-y-1">
               <li>Partagez votre lien avec vos amis et votre réseau</li>
-              <li>Vous recevez 500 points de fidélité pour chaque parrainage après le lancement officiel</li>
             </ul>
           </div>
         </div>
