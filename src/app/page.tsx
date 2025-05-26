@@ -2003,7 +2003,7 @@ export default function Home() {
                   <div className="h-4 w-px bg-blue-200 dark:bg-blue-700 self-center mx-1"></div>
                 )}
               </div>
-            ))}
+            ))}  
           </div>
         </nav>
 
