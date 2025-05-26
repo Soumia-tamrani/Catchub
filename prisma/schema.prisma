@@ -1,3 +1,4 @@
+// schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -41,28 +42,19 @@ enum CompanyNeed {
   PRESENTATION_MARQUE
   RESEAU_B2B
   TALENTS_QUALIFIES
-  PARTENARIATS_B2B
-  FREELANCES_PRESTATAIRES
-  VISIBILITE_MARKETING_DIGITAL
-  INVESTISSEMENTS
-  MENTORAT
-  FORUMS_SECTORIELS
-  AUTRE
+  TABLEAUX_BORD
+  INSIGHTS_SECTORIELS
+  OFFRES_EMPLOI
+  MENTORS_SECTORIELS
+  FREELANCE_HUB
 }
 
 enum CompanySize {
-  LESS_THAN_10
-  BETWEEN_10_50
-  BETWEEN_50_250
-  MORE_THAN_250
+  STARTUP
+  PME
+  GRANDE_ENTREPRISE
 }
 
-enum TypeContrat {
-  CDI
-  CDD
-  FREELANCE
-  AUTRE
-}
 
 model User {
   id                   String    @id @default(uuid())
@@ -71,55 +63,57 @@ model User {
   Email                String    @unique
   Téléphone_mobile     String    @unique
   role                 UserRole
-  city                 String?   
-  country              String?   
+  city                 String?
+  country              String?
   sector               Secteur
   createdAt            DateTime  @default(now())
   emailVerified        Boolean?  @db.Boolean
-
-
-  // Champs du formulaire court
-  besoinPrincipal      ProfessionalInterest
-
-  // Relations
-  professionalDetails  ProfessionalDetail?
+  professionalDetails   ProfessionalDetail?
   companyDetails       CompanyDetail?
-
-  // Autres champs
   subscribedToNewsletter Boolean @default(false)
-  registeredForTrial     Boolean @default(false)
-  registrationDate       DateTime?
-  
-  // For tracking
-  referralSource         String?
-  ipAddress              String?
-  utmSource              String?
-  utmMedium              String?
-  utmCampaign            String?
-    // Parrainage
-  parrainId              String?
-  parrain                User?     @relation("Parrainage", fields: [parrainId], references: [id])
-  filleuls               User[]    @relation("Parrainage")
+  registeredForTrial    Boolean @default(false)
+  registrationDate      DateTime?
+  referralSource        String?
+  ipAddress             String?
+  utmSource             String?
+  utmMedium             String?
+  utmCampaign           String?
+  parrainId             String?
+  parrain               User?     @relation("Parrainage", fields: [parrainId], references: [id])
+  filleuls              User[]    @relation("Parrainage")
 }
 
 model ProfessionalDetail {
   id                     String   @id @default(uuid())
   user                   User     @relation(fields: [userId], references: [id])
   userId                 String   @unique
-  professionalInterests  ProfessionalInterest[]
+  professionalInterests  ProfessionalInterest[] @default([])
   professionalChallenges String?
-  city                   String?  
+  city                   String?
   country                String?
 }
 
 model CompanyDetail {
-  id                String      @id @default(uuid())
-  user              User        @relation(fields: [userId], references: [id])
-  userId            String      @unique
-  companyName       String
-  companySize       CompanySize
-  companyNeeds      CompanyNeed[]
-  companyChallenges String?
-  city              String?
-  country           String?
+  id                    String      @id @default(uuid())
+  user                  User        @relation(fields: [userId], references: [id])
+  userId                String      @unique
+  companyName           String
+  companySize           CompanySize
+  companyNeeds          CompanyNeed[]
+  companyChallenges     String?
+  city                  String?
+  country               String?
+  companyDescription    String?     
+  companyWebsite        String?     
+  companyFoundingYear   String?     
+  mainNeed              String?     
+  otherSector           String?     
+}
+model CookieConsent {
+  id              String   @id @default(cuid())
+  userId          String?  // Si l'utilisateur est connecté
+  sessionId       String   // Utilisé si l'utilisateur n'est pas connecté
+  consentStatus   String   // "accepted" ou "refused"
+  consentDate     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
